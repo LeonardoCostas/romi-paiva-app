@@ -21,6 +21,7 @@ import {
 import { fetchClients, fetchReservations, fetchServices } from '../../services/bookingApi';
 import { clearSession } from '../../utils/auth';
 import { formatTimeLabel, getStatusColor, getStatusLabel } from '../../utils/booking';
+import { AdminMobileNav } from './AdminSection';
 
 const HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
 const SLOT_HEIGHT = 56;
@@ -257,9 +258,19 @@ export default function Agenda() {
         @media (max-width: 720px) {
           .agenda-sidebar { display: none !important; }
           .agenda-main { margin-left: 0 !important; }
-          .agenda-header, .agenda-content { padding-left: 18px !important; padding-right: 18px !important; }
+          .agenda-header { padding: 16px 14px !important; align-items: stretch !important; }
+          .agenda-header-title { display: none !important; }
+          .agenda-header-actions { width: 100%; justify-content: stretch; }
+          .agenda-header-actions > button { flex: 1; justify-content: center; min-height: 42px; }
+          .agenda-content { padding: 14px !important; }
+          .agenda-calendar-toolbar { padding: 14px !important; }
+          .agenda-calendar-title { width: 100%; text-align: center; font-size: 17px !important; }
+          .agenda-calendar-switch { width: 100%; justify-content: center; }
+          .agenda-calendar-scroll { -webkit-overflow-scrolling: touch; }
         }
       `}</style>
+
+      <AdminMobileNav title="Agenda" onLogout={handleLogout} />
 
       <aside
         className="agenda-sidebar"
@@ -360,7 +371,7 @@ export default function Agenda() {
             flexWrap: 'wrap',
           }}
         >
-          <div>
+          <div className="agenda-header-title">
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
               <Calendar size={22} color="#b8638e" />
               <h1 style={{ margin: 0, fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#1a1218' }}>
@@ -372,7 +383,7 @@ export default function Agenda() {
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div className="agenda-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button type="button" className="agenda-btn-ghost" onClick={() => setShowFilters((value) => !value)}>
               <Filter size={15} />
               Filtros
@@ -406,7 +417,7 @@ export default function Agenda() {
           )}
 
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece8ef', boxShadow: '0 2px 12px rgba(0,0,0,.04)', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #f0ecf2', flexWrap: 'wrap', gap: 12 }}>
+            <div className="agenda-calendar-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #f0ecf2', flexWrap: 'wrap', gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <button type="button" className="agenda-nav-btn" onClick={goPrev} aria-label="Semana anterior">
                   <ChevronLeft size={18} />
@@ -419,11 +430,11 @@ export default function Agenda() {
                 </button>
               </div>
 
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 600, color: '#1a1218' }}>
+              <div className="agenda-calendar-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 600, color: '#1a1218' }}>
                 {rangeLabel}
               </div>
 
-              <div style={{ display: 'flex', background: '#f4f2f5', borderRadius: 10, padding: 3 }}>
+              <div className="agenda-calendar-switch" style={{ display: 'flex', background: '#f4f2f5', borderRadius: 10, padding: 3 }}>
                 {['mes', 'semana', 'dia'].map((v) => (
                   <button key={v} type="button" className={`agenda-view-btn${view === v ? ' active' : ''}`} onClick={() => setView(v)}>
                     {v === 'mes' ? 'Mes' : v === 'semana' ? 'Semana' : 'Día'}
@@ -441,7 +452,7 @@ export default function Agenda() {
             )}
 
             {!loading && view === 'semana' && (
-              <div style={{ overflowX: 'auto' }}>
+              <div className="agenda-calendar-scroll" style={{ overflowX: 'auto' }}>
                 <div style={{ minWidth: 780, display: 'flex' }}>
                   <div style={{ width: 56, flexShrink: 0, borderRight: '1px solid #f0ecf2' }}>
                     <div style={{ height: 44, borderBottom: '1px solid #f0ecf2' }} />
