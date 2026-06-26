@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Peluqueria.Api/Peluqueria.Api.csproj" />
+    <Project Path="src/Peluqueria.Application/Peluqueria.Application.csproj" />
+    <Project Path="src/Peluqueria.Domain/Peluqueria.Domain.csproj" />
+    <Project Path="src/Peluqueria.Infrastructure/Peluqueria.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Peluqueria.Tests/Peluqueria.Tests.csproj" />
+  </Folder>
+</Solution>
