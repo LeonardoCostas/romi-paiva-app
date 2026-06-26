@@ -130,9 +130,18 @@ export default function Inicio() {
           .rp-nav-actions .rp-btn-dark { display: none; }
         }
         @media (max-width: 600px) {
+          .rp-nav { padding: 12px 18px !important; gap: 12px !important; }
+          .rp-brand { min-width: 0; gap: 8px !important; }
+          .rp-brand-divider, .rp-brand-script, .rp-nav-link { display: none !important; }
+          .rp-btn-reservar { padding: 10px 13px !important; gap: 6px !important; font-size: 10px !important; letter-spacing: .04em !important; white-space: nowrap; }
+          .rp-main { padding: 24px 20px 16px !important; gap: 28px !important; }
           .rp-headline-lg { font-size: 36px !important; }
-          .rp-svc-row { gap: 12px !important; flex-wrap: wrap; justify-content: center; }
-          .rp-tagline-quote { display: none; }
+          .rp-location { max-width: 100%; padding: 7px 14px !important; font-size: 10.5px !important; line-height: 1.4; }
+          .rp-svc-row { gap: 14px !important; flex-wrap: wrap !important; justify-content: center !important; }
+          .rp-tagline-quote { display: none !important; }
+          .rp-right { max-width: 100% !important; }
+          .rp-wa-wrap { padding: 6px 18px 30px !important; }
+          .rp-wa-btn { width: 100%; max-width: 360px; justify-content: center; gap: 12px !important; padding: 13px 16px !important; }
         }
       `}</style>
 
@@ -154,7 +163,7 @@ export default function Inicio() {
         backdropFilter: 'blur(4px)',
       }}>
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div className="rp-brand" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c8a060" strokeWidth="1.8" strokeLinecap="round">
               <circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
@@ -172,8 +181,8 @@ export default function Inicio() {
             <div style={{ fontSize: 8, letterSpacing: '.3em', textTransform: 'uppercase', color: '#c8a060', opacity: .8 }}>ESTETICA</div>
             <div style={{ fontSize: 13, letterSpacing: '.22em', fontWeight: 700, color: '#f0e0c0', textTransform: 'uppercase' }}>ROMI PAIVA</div>
           </div>
-          <div style={{ width: 1, height: 36, background: 'rgba(255,255,255,.14)', margin: '0 16px' }} />
-          <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 28, color: '#f0e0c0', fontWeight: 600 }}>
+          <div className="rp-brand-divider" style={{ width: 1, height: 36, background: 'rgba(255,255,255,.14)', margin: '0 16px' }} />
+          <span className="rp-brand-script" style={{ fontFamily: "'Dancing Script', cursive", fontSize: 28, color: '#f0e0c0', fontWeight: 600 }}>
             Romi Paiva
           </span>
         </div>
@@ -206,7 +215,7 @@ export default function Inicio() {
 
         {/* LEFT */}
         <div className="rp-left" style={{ flex: 1, maxWidth: 580, paddingTop: 8 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'rgba(16,6,10,.7)', border: '1px solid rgba(220,150,185,.2)', borderRadius: 100, padding: '7px 18px', fontSize: 11.5, color: 'rgba(255,255,255,.65)', marginBottom: 26, backdropFilter: 'blur(10px)', letterSpacing: '.06em' }}>
+          <div className="rp-location" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'rgba(16,6,10,.7)', border: '1px solid rgba(220,150,185,.2)', borderRadius: 100, padding: '7px 18px', fontSize: 11.5, color: 'rgba(255,255,255,.65)', marginBottom: 26, backdropFilter: 'blur(10px)', letterSpacing: '.06em' }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#e8a4c0', display: 'inline-block', boxShadow: '0 0 8px rgba(232,164,192,.6)' }} />
             Studio premium · Rafael Calzada, Buenos Aires
           </div>
@@ -276,7 +285,7 @@ export default function Inicio() {
       </main>
 
       {/* WHATSAPP CTA */}
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 40px', position: 'relative', zIndex: 10 }}>
+      <div className="rp-wa-wrap" style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 40px', position: 'relative', zIndex: 10 }}>
         <a href="https://wa.me/5491130323105" target="_blank" rel="noopener noreferrer" className="rp-wa-btn">
           <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'linear-gradient(135deg, rgba(37,211,102,.18) 0%, rgba(37,211,102,.08) 100%)', border: '1px solid rgba(37,211,102,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
