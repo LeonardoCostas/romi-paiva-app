@@ -1,0 +1,50 @@
+services:
+  - type: web
+    name: romi-paiva-api
+    runtime: docker
+    plan: free
+    rootDir: backend
+    envVars:
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Jwt__Issuer
+        value: Peluqueria.Api
+      - key: Jwt__Audience
+        value: Peluqueria.Client
+      - key: Jwt__SecretKey
+        generateValue: true
+      - key: Jwt__ExpirationMinutes
+        value: "120"
+      - key: GoogleAuth__ClientId
+        sync: false
+      - key: GoogleAuth__AdminEmails__0
+        value: leonardo.costas2001@gmail.com
+      - key: AllowedOrigins__0
+        sync: false
+      - key: Notifications__WhatsApp__Enabled
+        value: "false"
+      - key: Notifications__WhatsApp__PhoneNumberId
+        sync: false
+      - key: Notifications__WhatsApp__AccessToken
+        sync: false
+      - key: Notifications__WhatsApp__ApiVersion
+        value: v20.0
+      - key: Notifications__WhatsApp__ReservationCreatedTemplateName
+        value: turno_solicitado
+      - key: Notifications__WhatsApp__LanguageCode
+        value: es_AR
+
+  - type: web
+    name: romi-paiva-web
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
