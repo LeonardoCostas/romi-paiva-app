@@ -9,6 +9,8 @@ import {
   Loader2,
   LogOut,
   Menu,
+  Pencil,
+  Save,
   Scissors,
   Settings,
   User,
@@ -21,10 +23,12 @@ import {
   fetchReservations,
   fetchServices,
   fetchUsers,
+  updateBusinessHours,
+  updateService,
   updateServiceStatus,
 } from '../../services/bookingApi';
 import { clearSession } from '../../utils/auth';
-import { formatDuration, formatPrice, formatTimeLabel, getCategoryLabel } from '../../utils/booking';
+import { formatDuration, formatPrice, getCategoryLabel } from '../../utils/booking';
 
 const NAV_PRINCIPAL = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -52,6 +56,12 @@ const SECTION_META = {
   finanzas: { title: 'Finanzas', icon: DollarSign },
   configuracion: { title: 'Configuración', icon: Settings },
 };
+
+const DAY_LABELS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+function toTimeInput(value) {
+  return String(value ?? '').slice(0, 5);
+}
 
 function SidebarLink({ to, label, icon: Icon, pathname }) {
   const active = pathname === to || (to !== '/admin/dashboard' && pathname.startsWith(to));
@@ -211,6 +221,11 @@ export function AdminSection({ type }) {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editingServiceId, setEditingServiceId] = useState(null);
+  const [servicePrice, setServicePrice] = useState('');
+  const [serviceVariablePrice, setServiceVariablePrice] = useState(false);
+  const [hoursDraft, setHoursDraft] = useState([]);
+  const [saving, setSaving] = useState(false);
 
   const activeServices = useMemo(() => services.filter((service) => service.active), [services]);
   const totalRevenue = useMemo(() => {
@@ -244,7 +259,10 @@ export function AdminSection({ type }) {
           const [serviceData, hourData] = await Promise.all([fetchServices(false), fetchBusinessHours()]);
           result = { serviceData, hourData };
         }
-        if (!cancelled) setData(result);
+        if (!cancelled) {
+          setData(result);
+          if (type === 'horarios') setHoursDraft(result.map((hour) => ({ ...hour, openingTime: toTimeInput(hour.openingTime), closingTime: toTimeInput(hour.closingTime) })));
+        }
       } catch (err) {
         console.error(err);
         if (!cancelled) setError('No pudimos cargar esta sección. Revisá permisos y conexión con la API.');
@@ -260,8 +278,66 @@ export function AdminSection({ type }) {
   }, [type]);
 
   const toggleService = async (service) => {
-    await updateServiceStatus(service.id, !service.active);
-    setData((prev) => prev.map((item) => (item.id === service.id ? { ...item, active: !item.active } : item)));
+    try {
+      setSaving(true);
+      await updateServiceStatus(service.id, !service.active);
+      setData((prev) => prev.map((item) => (item.id === service.id ? { ...item, active: !item.active } : item)));
+    } catch (err) {
+      setError(err.response?.data?.error ?? 'No se pudo actualizar el servicio.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const startPriceEdit = (service) => {
+    setEditingServiceId(service.id);
+    setServicePrice(service.price ?? '');
+    setServiceVariablePrice(Boolean(service.priceIsVariable));
+  };
+
+  const savePrice = async (service) => {
+    const parsedPrice = servicePrice === '' ? null : Number(servicePrice);
+    if (parsedPrice != null && (!Number.isFinite(parsedPrice) || parsedPrice < 0)) {
+      setError('Ingresá un precio válido.');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const updated = await updateService(service.id, {
+        name: service.name,
+        description: service.description,
+        category: service.category,
+        durationMinutes: service.durationMinutes,
+        price: parsedPrice,
+        priceIsVariable: serviceVariablePrice,
+        eyelashServiceKind: service.eyelashServiceKind,
+      });
+      setData((prev) => prev.map((item) => (item.id === service.id ? updated : item)));
+      setEditingServiceId(null);
+    } catch (err) {
+      setError(err.response?.data?.error ?? 'No se pudo guardar el precio.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveHours = async () => {
+    try {
+      setSaving(true);
+      const updated = await updateBusinessHours(hoursDraft.map((hour) => ({
+        dayOfWeek: hour.dayOfWeek,
+        openingTime: `${hour.openingTime}:00`,
+        closingTime: `${hour.closingTime}:00`,
+        active: hour.active,
+      })));
+      setData(updated);
+      setHoursDraft(updated.map((hour) => ({ ...hour, openingTime: toTimeInput(hour.openingTime), closingTime: toTimeInput(hour.closingTime) })));
+    } catch (err) {
+      setError(err.response?.data?.error ?? 'No se pudieron guardar los horarios.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -282,16 +358,28 @@ export function AdminSection({ type }) {
         <div className="admin-card">
           <table className="admin-table">
             <thead><tr><th>Servicio</th><th>Categoría</th><th>Duración</th><th>Precio</th><th>Estado</th><th>Acción</th></tr></thead>
-            <tbody>{data.map((service) => <tr key={service.id}><td>{service.name}</td><td>{getCategoryLabel(service.category)}</td><td>{formatDuration(service.durationMinutes)}</td><td>{formatPrice(service)}</td><td>{service.active ? 'Activo' : 'Inactivo'}</td><td><button type="button" className="admin-btn-ghost" onClick={() => toggleService(service)}>{service.active ? 'Desactivar' : 'Activar'}</button></td></tr>)}</tbody>
+            <tbody>{data.map((service) => {
+              const editing = editingServiceId === service.id;
+              return <tr key={service.id}>
+                <td>{service.name}</td><td>{getCategoryLabel(service.category)}</td><td>{formatDuration(service.durationMinutes)}</td>
+                <td>{editing ? <div style={{ display: 'grid', gap: 6 }}><input className="admin-input" inputMode="decimal" value={servicePrice} onChange={(event) => setServicePrice(event.target.value)} placeholder="Precio" disabled={serviceVariablePrice} /><label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#666' }}><input type="checkbox" checked={serviceVariablePrice} onChange={(event) => setServiceVariablePrice(event.target.checked)} /> Precio a consultar</label></div> : formatPrice(service)}</td>
+                <td>{service.active ? 'Activo' : 'Inactivo'}</td>
+                <td><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{editing ? <><button type="button" className="admin-btn-primary" disabled={saving} onClick={() => savePrice(service)}><Save size={14} /> Guardar</button><button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => setEditingServiceId(null)}>Cancelar</button></> : <><button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => startPriceEdit(service)}><Pencil size={14} /> Precio</button><button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => toggleService(service)}>{service.active ? 'Desactivar' : 'Activar'}</button></>}</div></td>
+              </tr>;
+            })}</tbody>
           </table>
         </div>
       )}
 
       {!loading && !error && type === 'horarios' && (
         <div className="admin-card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: 16, borderBottom: '1px solid #f0ecf2', flexWrap: 'wrap' }}>
+            <div><strong style={{ color: '#333' }}>Horarios de atención</strong><div style={{ color: '#777', fontSize: 12, marginTop: 3 }}>Estos horarios determinan los turnos disponibles para clientes.</div></div>
+            <button type="button" className="admin-btn-primary" disabled={saving} onClick={saveHours}><Save size={15} /> {saving ? 'Guardando...' : 'Guardar horarios'}</button>
+          </div>
           <table className="admin-table">
             <thead><tr><th>Día</th><th>Apertura</th><th>Cierre</th><th>Estado</th></tr></thead>
-            <tbody>{data.map((hour) => <tr key={hour.id ?? hour.dayOfWeek}><td>{String(hour.dayOfWeek)}</td><td>{formatTimeLabel(hour.openingTime)}</td><td>{formatTimeLabel(hour.closingTime)}</td><td>{hour.active ? 'Atiende' : 'Cerrado'}</td></tr>)}</tbody>
+            <tbody>{hoursDraft.slice().sort((a, b) => Number(a.dayOfWeek) - Number(b.dayOfWeek)).map((hour) => <tr key={hour.id ?? hour.dayOfWeek}><td>{DAY_LABELS[Number(hour.dayOfWeek)] ?? String(hour.dayOfWeek)}</td><td><input className="admin-input" type="time" value={hour.openingTime} disabled={!hour.active} onChange={(event) => setHoursDraft((prev) => prev.map((item) => item.dayOfWeek === hour.dayOfWeek ? { ...item, openingTime: event.target.value } : item))} /></td><td><input className="admin-input" type="time" value={hour.closingTime} disabled={!hour.active} onChange={(event) => setHoursDraft((prev) => prev.map((item) => item.dayOfWeek === hour.dayOfWeek ? { ...item, closingTime: event.target.value } : item))} /></td><td><label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}><input type="checkbox" checked={hour.active} onChange={(event) => setHoursDraft((prev) => prev.map((item) => item.dayOfWeek === hour.dayOfWeek ? { ...item, active: event.target.checked } : item))} /> {hour.active ? 'Atiende' : 'Cerrado'}</label></td></tr>)}</tbody>
           </table>
         </div>
       )}

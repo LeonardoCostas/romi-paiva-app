@@ -84,6 +84,16 @@ export async function updateServiceStatus(id, active) {
   return response.data;
 }
 
+export async function updateService(id, payload) {
+  const response = await api.put(`/v1/services/${id}`, payload);
+  return response.data?.data;
+}
+
+export async function updateBusinessHours(hours) {
+  const response = await api.put('/v1/business-hours', hours);
+  return response.data?.data ?? [];
+}
+
 export async function fetchUsers() {
   const response = await api.get('/v1/users');
   return response.data?.data ?? [];
