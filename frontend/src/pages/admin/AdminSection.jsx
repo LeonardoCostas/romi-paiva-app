@@ -8,10 +8,12 @@ import {
   LayoutDashboard,
   Loader2,
   LogOut,
+  Menu,
   Scissors,
   Settings,
   User,
   Users,
+  X,
 } from 'lucide-react';
 import {
   fetchBusinessHours,
@@ -61,6 +63,62 @@ function SidebarLink({ to, label, icon: Icon, pathname }) {
   );
 }
 
+export function AdminMobileNav({ title, onLogout }) {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [open, setOpen] = useState(false);
+  const items = [...NAV_PRINCIPAL, ...NAV_GESTION, ...NAV_REPORTES];
+
+  const logout = () => {
+    if (onLogout) {
+      onLogout();
+      return;
+    }
+    clearSession();
+    navigate('/');
+  };
+
+  return (
+    <>
+      <style>{`
+        .admin-mobile-bar { display: none; }
+        @media (max-width: 720px) {
+          .admin-mobile-bar { display: flex; position: sticky; top: 0; z-index: 50; align-items: center; justify-content: space-between; min-height: 60px; padding: 10px 14px; background: #1a1218; color: #fff; box-shadow: 0 3px 14px rgba(0,0,0,.18); }
+          .admin-mobile-menu { position: fixed; inset: 60px 0 0; z-index: 49; overflow-y: auto; padding: 16px; background: #100608; }
+          .admin-mobile-menu-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        }
+      `}</style>
+      <div className="admin-mobile-bar">
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 9, letterSpacing: '.18em', color: 'rgba(255,255,255,.45)', textTransform: 'uppercase' }}>Romi Paiva</div>
+          <strong style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 16 }}>{title}</strong>
+        </div>
+        <button type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? 'Cerrar menú' : 'Abrir menú'} style={{ width: 40, height: 40, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,.16)', borderRadius: 10, background: 'rgba(255,255,255,.06)', color: '#fff' }}>
+          {open ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </div>
+      {open && (
+        <nav className="admin-mobile-menu" aria-label="Navegación del panel">
+          <div className="admin-mobile-menu-grid">
+            {items.map(({ to, label, icon: Icon }) => {
+              const active = pathname === to || (to !== '/admin/dashboard' && pathname.startsWith(to));
+              return (
+                <Link key={to} to={to} onClick={() => setOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 9, minHeight: 48, padding: '10px 12px', borderRadius: 10, color: active ? '#fff' : 'rgba(255,255,255,.7)', background: active ? 'rgba(221,160,187,.24)' : 'rgba(255,255,255,.05)', textDecoration: 'none', fontSize: 13, fontWeight: active ? 600 : 400 }}>
+                  <Icon size={16} />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+          <button type="button" onClick={logout} style={{ width: '100%', marginTop: 18, minHeight: 46, border: '1px solid rgba(255,255,255,.12)', borderRadius: 10, background: 'rgba(255,255,255,.06)', color: '#fff', fontSize: 13 }}>
+            Cerrar sesión
+          </button>
+        </nav>
+      )}
+    </>
+  );
+}
+
 export function AdminLayout({ title, icon: Icon = LayoutDashboard, children }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -86,8 +144,10 @@ export function AdminLayout({ title, icon: Icon = LayoutDashboard, children }) {
         .admin-input { width: 100%; border: 1px solid #e5e0ea; border-radius: 10px; padding: 10px 12px; font-size: 13px; outline: none; }
         .admin-input:focus { border-color: #cda0bc; }
         @media (max-width: 1100px) { .admin-sidebar { width: 72px !important; padding: 20px 10px !important; } .admin-sidebar-label, .admin-sidebar-section { display: none !important; } .admin-main { margin-left: 72px !important; } }
-        @media (max-width: 720px) { .admin-sidebar { display: none !important; } .admin-main { margin-left: 0 !important; } .admin-header, .admin-content { padding-left: 18px !important; padding-right: 18px !important; } }
+        @media (max-width: 720px) { .admin-sidebar { display: none !important; } .admin-main { margin-left: 0 !important; } .admin-header { display: none !important; } .admin-content { padding: 16px 14px 28px !important; } .admin-card { border-radius: 12px !important; } .admin-card { overflow-x: auto !important; } .admin-table { min-width: 650px; } .admin-btn-primary, .admin-btn-ghost, .admin-btn-danger { min-height: 42px; } }
       `}</style>
+
+      <AdminMobileNav title={title} onLogout={handleLogout} />
 
       <aside className="admin-sidebar" style={{ width: 240, flexShrink: 0, background: 'linear-gradient(180deg, #1a1218 0%, #100608 100%)', borderRight: '1px solid rgba(255,255,255,.06)', display: 'flex', flexDirection: 'column', padding: '24px 16px', position: 'fixed', inset: '0 auto 0 0', zIndex: 30 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 8px 28px' }}>
