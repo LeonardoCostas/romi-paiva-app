@@ -42,7 +42,14 @@ dotnet test
 dotnet run --project src/Peluqueria.Api
 ```
 
-## Usuario inicial
+## Administrador inicial
 
-- Email: `admin@peluqueria.local`
-- Password: `Admin123!`
+No existe un usuario administrador hardcodeado ni una contraseña por defecto.
+
+El usuario administrador inicial se crea o actualiza desde la configuración:
+
+```bash
+GoogleAuth__AdminEmails__0=tu-email-admin@gmail.com
+```
+
+Ese email debe iniciar sesión con Google. Cualquier otro usuario autenticado se crea con rol `Cliente`.
