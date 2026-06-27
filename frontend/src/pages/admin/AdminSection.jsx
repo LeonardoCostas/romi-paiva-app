@@ -93,9 +93,9 @@ export function AdminMobileNav({ title, onLogout }) {
       <style>{`
         .admin-mobile-bar { display: none; }
         @media (max-width: 720px) {
-          .admin-mobile-bar { display: flex; position: sticky; top: 0; z-index: 50; align-items: center; justify-content: space-between; min-height: 60px; padding: 10px 14px; background: #1a1218; color: #fff; box-shadow: 0 3px 14px rgba(0,0,0,.18); }
-          .admin-mobile-menu { position: fixed; inset: 60px 0 0; z-index: 49; overflow-y: auto; padding: 16px; background: #100608; }
-          .admin-mobile-menu-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+          .admin-mobile-bar { display: flex; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; width: 100vw; min-height: 60px; align-items: center; justify-content: space-between; padding: 10px 14px; background: #1a1218; color: #fff; box-shadow: 0 3px 14px rgba(0,0,0,.18); }
+          .admin-mobile-menu { position: fixed; top: 60px; left: 0; right: 0; bottom: 0; z-index: 999; width: 100vw; max-width: 100vw; overflow-x: hidden; overflow-y: auto; padding: 16px; background: #100608; }
+          .admin-mobile-menu-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
         }
       `}</style>
       <div className="admin-mobile-bar">
@@ -139,10 +139,12 @@ export function AdminLayout({ title, icon: Icon = LayoutDashboard, children }) {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', background: '#f4f2f5', fontFamily: "'Inter', sans-serif" }}>
+    <div className="admin-shell" style={{ minHeight: '100vh', display: 'flex', background: '#f4f2f5', fontFamily: "'Inter', sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap');
         * { box-sizing: border-box; }
+        html, body, #root { max-width: 100%; overflow-x: hidden; }
+        .admin-shell { width: 100%; max-width: 100vw; overflow-x: hidden; }
         .admin-sidebar-link:hover { background: rgba(255,255,255,.06) !important; color: rgba(255,255,255,.85) !important; }
         .admin-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 10px; padding: 10px 16px; background: linear-gradient(135deg, #dda0bb 0%, #b8638e 100%); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; }
         .admin-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #e5e0ea; border-radius: 10px; padding: 9px 14px; background: #fff; color: #555; font-size: 13px; cursor: pointer; text-decoration: none; }
@@ -157,6 +159,7 @@ export function AdminLayout({ title, icon: Icon = LayoutDashboard, children }) {
         @media (max-width: 1100px) { .admin-sidebar { width: 72px !important; padding: 20px 10px !important; } .admin-sidebar-label, .admin-sidebar-section { display: none !important; } .admin-main { margin-left: 72px !important; } }
         @media (max-width: 720px) {
           .admin-sidebar { display: none !important; }
+          .admin-shell { padding-top: 60px; }
           .admin-main { margin-left: 0 !important; }
           .admin-header { display: none !important; }
           .admin-content { padding: 16px 14px 28px !important; }

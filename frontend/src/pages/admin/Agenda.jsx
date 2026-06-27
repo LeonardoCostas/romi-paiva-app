@@ -206,6 +206,8 @@ export default function Agenda() {
     >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap');
+        html, body, #root { max-width: 100%; overflow-x: hidden; }
+        .agenda-root { width: 100%; max-width: 100vw; overflow-x: hidden; }
         .agenda-root * { box-sizing: border-box; }
         .agenda-sidebar-link:hover { background: rgba(255,255,255,.06) !important; color: rgba(255,255,255,.85) !important; }
         .agenda-btn-primary {
@@ -252,11 +254,12 @@ export default function Agenda() {
         }
         @media (max-width: 720px) {
           .agenda-sidebar { display: none !important; }
+          .agenda-root { padding-top: 60px; }
           .agenda-main { margin-left: 0 !important; }
           .agenda-header { padding: 16px 14px !important; align-items: stretch !important; }
           .agenda-header-title { display: none !important; }
           .agenda-header-actions { width: 100%; justify-content: stretch; }
-          .agenda-header-actions > button { flex: 1; justify-content: center; min-height: 42px; }
+          .agenda-header-actions > button { flex: 1 1 0; min-width: 0; justify-content: center; min-height: 42px; }
           .agenda-content { padding: 14px !important; }
           .agenda-calendar-toolbar { padding: 14px !important; }
           .agenda-calendar-title { width: 100%; text-align: center; font-size: 17px !important; }
