@@ -12,7 +12,7 @@ namespace Peluqueria.Api.Controllers;
 [Route("api/v1/reservations")]
 public sealed class ReservationsController : ControllerBase
 {
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Recepcionista)},{nameof(UserRole.Profesional)}")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<ReservationResponse>>>> GetAll(
         [FromServices] ReservationService reservationService,
@@ -35,7 +35,7 @@ public sealed class ReservationsController : ControllerBase
         return ApiResponseFactory.FromResult(this, result);
     }
 
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Recepcionista)},{nameof(UserRole.Profesional)},{nameof(UserRole.Cliente)}")]
+    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Cliente)}")]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ApiResponse<ReservationResponse>>> GetById(
         Guid id,
@@ -46,7 +46,7 @@ public sealed class ReservationsController : ControllerBase
         return ApiResponseFactory.FromResult(this, result);
     }
 
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Recepcionista)},{nameof(UserRole.Cliente)}")]
+    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Cliente)}")]
     [HttpPost]
     public async Task<ActionResult<ApiResponse<ReservationResponse>>> Create(
         [FromServices] ReservationService reservationService,
@@ -57,7 +57,7 @@ public sealed class ReservationsController : ControllerBase
         return ApiResponseFactory.FromResult(this, result, StatusCodes.Status201Created);
     }
 
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Recepcionista)}")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ApiResponse<ReservationResponse>>> Update(
         Guid id,
@@ -69,7 +69,7 @@ public sealed class ReservationsController : ControllerBase
         return ApiResponseFactory.FromResult(this, result);
     }
 
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Recepcionista)}")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPatch("{id:guid}/confirm")]
     public async Task<ActionResult<ApiResponse<ReservationResponse>>> Confirm(
         Guid id,
@@ -80,7 +80,7 @@ public sealed class ReservationsController : ControllerBase
         return ApiResponseFactory.FromResult(this, result);
     }
 
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Recepcionista)},{nameof(UserRole.Cliente)}")]
+    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Cliente)}")]
     [HttpPatch("{id:guid}/cancel")]
     public async Task<ActionResult<ApiResponse<ReservationResponse>>> Cancel(
         Guid id,
@@ -91,7 +91,7 @@ public sealed class ReservationsController : ControllerBase
         return ApiResponseFactory.FromResult(this, result);
     }
 
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Recepcionista)},{nameof(UserRole.Profesional)}")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPatch("{id:guid}/complete")]
     public async Task<ActionResult<ApiResponse<ReservationResponse>>> Complete(
         Guid id,

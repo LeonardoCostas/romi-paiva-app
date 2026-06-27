@@ -9,7 +9,7 @@ export const ROLES = {
   CLIENTE: 'Cliente',
 };
 
-const STAFF_ROLE_VALUES = new Set(['Admin', 'Recepcionista', 'Profesional', '1', '2', '3']);
+const ADMIN_ROLE_VALUES = new Set(['Admin', '1']);
 
 export function getToken() {
   const token = localStorage.getItem('token');
@@ -48,7 +48,7 @@ export function getUserRole() {
 
 export function isStaffRole(role = getUserRole()) {
   if (role == null) return false;
-  return STAFF_ROLE_VALUES.has(String(role));
+  return ADMIN_ROLE_VALUES.has(String(role));
 }
 
 export function isClienteRole(role = getUserRole()) {

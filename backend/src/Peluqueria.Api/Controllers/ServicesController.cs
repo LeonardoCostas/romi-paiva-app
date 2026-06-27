@@ -8,7 +8,7 @@ using Peluqueria.Domain.Enums;
 namespace Peluqueria.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Recepcionista)}")]
+[Authorize(Roles = nameof(UserRole.Admin))]
 [Route("api/v1/services")]
 public sealed class ServicesController : ControllerBase
 {

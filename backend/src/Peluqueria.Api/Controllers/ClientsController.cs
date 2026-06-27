@@ -11,7 +11,7 @@ namespace Peluqueria.Api.Controllers;
 [Route("api/v1/clients")]
 public sealed class ClientsController : ControllerBase
 {
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Recepcionista)},{nameof(UserRole.Profesional)}")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<ClientResponse>>>> GetAll(
         [FromServices] ClientService clientService,
@@ -23,7 +23,7 @@ public sealed class ClientsController : ControllerBase
         return Ok(new ApiResponse<IReadOnlyList<ClientResponse>>(true, clients, null, null));
     }
 
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Recepcionista)},{nameof(UserRole.Profesional)}")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ApiResponse<ClientResponse>>> GetById(
         Guid id,
@@ -66,7 +66,7 @@ public sealed class ClientsController : ControllerBase
         return ApiResponseFactory.FromResult(this, result);
     }
 
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Recepcionista)},{nameof(UserRole.Profesional)}")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ApiResponse<ClientResponse>>> Update(
         Guid id,
@@ -78,7 +78,7 @@ public sealed class ClientsController : ControllerBase
         return ApiResponseFactory.FromResult(this, result);
     }
 
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Recepcionista)},{nameof(UserRole.Profesional)}")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPatch("{id:guid}/status")]
     public async Task<ActionResult<ApiResponse<ClientResponse>>> UpdateStatus(
         Guid id,
