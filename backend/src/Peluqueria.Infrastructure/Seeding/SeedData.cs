@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Peluqueria.Application.Abstractions;
+using Peluqueria.Application.Contracts.Auth;
 using Peluqueria.Domain.Entities;
 using Peluqueria.Domain.Enums;
 using Peluqueria.Infrastructure.Persistence;
@@ -13,6 +15,7 @@ public static class SeedData
     {
         var dbContext = serviceProvider.GetRequiredService<AppDbContext>();
         var passwordHasher = serviceProvider.GetRequiredService<IPasswordHasher>();
+        var googleLoginOptions = serviceProvider.GetRequiredService<IOptions<GoogleLoginOptions>>().Value;
 
         if (!await dbContext.Roles.AnyAsync())
         {
@@ -23,9 +26,30 @@ public static class SeedData
                 new Role(UserRole.Cliente, "Cliente", "Cliente que reserva online"));
         }
 
-        if (!await dbContext.Users.AnyAsync())
+        var configuredAdminEmails = googleLoginOptions.AdminEmails
+            .Select(email => email.Trim().ToLowerInvariant())
+            .Where(email => !string.IsNullOrWhiteSpace(email))
+            .Distinct()
+            .ToList();
+
+        foreach (var adminEmail in configuredAdminEmails)
         {
-            dbContext.Users.Add(new User("Salon", "Admin", "admin@peluqueria.local", passwordHasher.Hash("Admin123!"), UserRole.Admin));
+            var adminUser = await dbContext.Users.FirstOrDefaultAsync(user => user.Email == adminEmail);
+            if (adminUser is null)
+            {
+                dbContext.Users.Add(new User("Admin", "Autorizado", adminEmail, passwordHasher.Hash(Guid.NewGuid().ToString("N")), UserRole.Admin));
+                continue;
+            }
+
+            if (adminUser.Role != UserRole.Admin)
+            {
+                adminUser.UpdateProfile(adminUser.FirstName, adminUser.LastName, UserRole.Admin);
+            }
+
+            if (!adminUser.Active)
+            {
+                adminUser.SetStatus(true);
+            }
         }
 
         if (!await dbContext.BusinessHours.AnyAsync())

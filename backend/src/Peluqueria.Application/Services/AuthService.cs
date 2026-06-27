@@ -4,7 +4,6 @@ using Peluqueria.Application.Contracts.Auth;
 using Peluqueria.Domain.Entities;
 using Peluqueria.Domain.Enums;
 using Peluqueria.Domain.Repositories;
-using Microsoft.Extensions.Options;
 
 namespace Peluqueria.Application.Services;
 
@@ -16,7 +15,6 @@ public sealed class AuthService
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IGoogleTokenValidator _googleTokenValidator;
-    private readonly GoogleLoginOptions _googleLoginOptions;
 
     public AuthService(
         IUserRepository userRepository,
@@ -24,8 +22,7 @@ public sealed class AuthService
         IClientRepository clientRepository,
         IPasswordHasher passwordHasher,
         IJwtTokenGenerator jwtTokenGenerator,
-        IGoogleTokenValidator googleTokenValidator,
-        IOptions<GoogleLoginOptions> googleLoginOptions)
+        IGoogleTokenValidator googleTokenValidator)
     {
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
@@ -33,7 +30,6 @@ public sealed class AuthService
         _passwordHasher = passwordHasher;
         _jwtTokenGenerator = jwtTokenGenerator;
         _googleTokenValidator = googleTokenValidator;
-        _googleLoginOptions = googleLoginOptions.Value;
     }
 
     public async Task<Result<AuthResponse>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
@@ -109,25 +105,13 @@ public sealed class AuthService
 
         var normalizedEmail = googleUser.Email.Trim().ToLowerInvariant();
         var user = await _userRepository.GetByEmailAsync(normalizedEmail, cancellationToken);
-        var shouldBeAdmin = _googleLoginOptions.AdminEmails.Any(email => string.Equals(email.Trim(), normalizedEmail, StringComparison.OrdinalIgnoreCase));
-        if (!shouldBeAdmin)
-        {
-            var users = await _userRepository.GetAllAsync(cancellationToken);
-            shouldBeAdmin = !users.Any(existing =>
-                existing.Role == UserRole.Admin &&
-                !string.Equals(existing.Email, "admin@peluqueria.local", StringComparison.OrdinalIgnoreCase));
-        }
 
         if (user is null)
         {
             var firstName = string.IsNullOrWhiteSpace(googleUser.FirstName) ? "Google" : googleUser.FirstName.Trim();
             var lastName = string.IsNullOrWhiteSpace(googleUser.LastName) ? "User" : googleUser.LastName.Trim();
-            user = new User(firstName, lastName, normalizedEmail, string.Empty, shouldBeAdmin ? UserRole.Admin : UserRole.Cliente);
+            user = new User(firstName, lastName, normalizedEmail, string.Empty, UserRole.Cliente);
             await _userRepository.AddAsync(user, cancellationToken);
-        }
-        else if (shouldBeAdmin && user.Role != UserRole.Admin)
-        {
-            user.UpdateProfile(user.FirstName, user.LastName, UserRole.Admin);
         }
 
         if (user.Role == UserRole.Cliente)
