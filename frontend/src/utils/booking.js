@@ -36,6 +36,24 @@ export const STATUS_COLORS = {
   5: '#9ca3af',
 };
 
+export function normalizeStatus(status) {
+  const value = String(status ?? '').toLowerCase();
+  if (value === '1' || value.includes('pend')) return 'Pendiente';
+  if (value === '2' || value.includes('confirm')) return 'Confirmada';
+  if (value === '3' || value.includes('cancel')) return 'Cancelada';
+  if (value === '4' || value.includes('complet') || value.includes('realiz')) return 'Completada';
+  if (value === '5' || value.includes('ausente')) return 'Ausente';
+  return String(status ?? '');
+}
+
+export function isCompletedStatus(status) {
+  return normalizeStatus(status) === 'Completada';
+}
+
+export function isCanceledStatus(status) {
+  return normalizeStatus(status) === 'Cancelada';
+}
+
 export function getCategoryLabel(category) {
   return CATEGORY_LABELS[category] ?? 'Otro';
 }

@@ -28,7 +28,7 @@ import {
   updateServiceStatus,
 } from '../../services/bookingApi';
 import { clearSession } from '../../utils/auth';
-import { formatDuration, formatPrice, getCategoryLabel } from '../../utils/booking';
+import { formatDuration, formatPrice, getCategoryLabel, isCanceledStatus, isCompletedStatus } from '../../utils/booking';
 
 const NAV_PRINCIPAL = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -147,6 +147,7 @@ export function AdminLayout({ title, icon: Icon = LayoutDashboard, children }) {
         .admin-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 10px; padding: 10px 16px; background: linear-gradient(135deg, #dda0bb 0%, #b8638e 100%); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; }
         .admin-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #e5e0ea; border-radius: 10px; padding: 9px 14px; background: #fff; color: #555; font-size: 13px; cursor: pointer; text-decoration: none; }
         .admin-btn-danger { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #f1b8b8; border-radius: 10px; padding: 9px 14px; background: #fff5f5; color: #a64444; font-size: 13px; cursor: pointer; }
+        .admin-table-wrap { width: 100%; overflow-x: auto; }
         .admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .admin-table th { text-align: left; color: #777; font-weight: 600; background: #faf9fb; border-bottom: 1px solid #eee8f0; padding: 12px 14px; }
         .admin-table td { border-bottom: 1px solid #f0ecf2; padding: 13px 14px; color: #333; vertical-align: top; }
@@ -154,7 +155,31 @@ export function AdminLayout({ title, icon: Icon = LayoutDashboard, children }) {
         .admin-input { width: 100%; border: 1px solid #e5e0ea; border-radius: 10px; padding: 10px 12px; font-size: 13px; outline: none; }
         .admin-input:focus { border-color: #cda0bc; }
         @media (max-width: 1100px) { .admin-sidebar { width: 72px !important; padding: 20px 10px !important; } .admin-sidebar-label, .admin-sidebar-section { display: none !important; } .admin-main { margin-left: 72px !important; } }
-        @media (max-width: 720px) { .admin-sidebar { display: none !important; } .admin-main { margin-left: 0 !important; } .admin-header { display: none !important; } .admin-content { padding: 16px 14px 28px !important; } .admin-card { border-radius: 12px !important; } .admin-card { overflow-x: auto !important; } .admin-table { min-width: 650px; } .admin-btn-primary, .admin-btn-ghost, .admin-btn-danger { min-height: 42px; } }
+        @media (max-width: 720px) {
+          .admin-sidebar { display: none !important; }
+          .admin-main { margin-left: 0 !important; }
+          .admin-header { display: none !important; }
+          .admin-content { padding: 16px 14px 28px !important; }
+          .admin-card { border-radius: 12px !important; }
+          .admin-table-wrap { overflow: visible !important; }
+          .admin-table { min-width: 0 !important; border-collapse: separate; border-spacing: 0 12px; }
+          .admin-table thead { display: none; }
+          .admin-table tbody { display: block; padding: 10px; }
+          .admin-table tr { display: block; border: 1px solid #eee8f0; border-radius: 12px; background: #fff; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.03); }
+          .admin-table tr + tr { margin-top: 12px; }
+          .admin-table td { display: grid; grid-template-columns: minmax(92px, 36%) minmax(0, 1fr); gap: 10px; align-items: start; padding: 10px 12px; border-bottom: 1px solid #f5f0f4; overflow-wrap: anywhere; }
+          .admin-table td:last-child { border-bottom: none; }
+          .admin-table td::before { content: attr(data-label); color: #7a7179; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+          .admin-table td:not([data-label]) { display: block; }
+          .admin-table td:not([data-label])::before { content: none; }
+          .admin-table td[colspan] { display: block; text-align: center; }
+          .admin-table td[colspan]::before { content: none; }
+          .admin-row-actions { width: 100%; display: grid !important; grid-template-columns: 1fr; }
+          .admin-row-actions .admin-btn-primary,
+          .admin-row-actions .admin-btn-ghost,
+          .admin-row-actions .admin-btn-danger { width: 100%; }
+          .admin-btn-primary, .admin-btn-ghost, .admin-btn-danger { min-height: 42px; }
+        }
       `}</style>
 
       <AdminMobileNav title={title} onLogout={handleLogout} />
@@ -228,13 +253,15 @@ export function AdminSection({ type }) {
   const [saving, setSaving] = useState(false);
 
   const activeServices = useMemo(() => services.filter((service) => service.active), [services]);
+  const completedReservations = useMemo(() => reservations.filter((reservation) => isCompletedStatus(reservation.status)), [reservations]);
+  const canceledReservations = useMemo(() => reservations.filter((reservation) => isCanceledStatus(reservation.status)), [reservations]);
   const totalRevenue = useMemo(() => {
     const serviceMap = new Map(services.map((service) => [service.id, service]));
-    return reservations.reduce((sum, reservation) => {
+    return completedReservations.reduce((sum, reservation) => {
       const service = serviceMap.get(reservation.serviceId);
       return sum + (service?.price && !service.priceIsVariable ? service.price : 0);
     }, 0);
-  }, [reservations, services]);
+  }, [completedReservations, services]);
 
   useEffect(() => {
     let cancelled = false;
@@ -347,27 +374,31 @@ export function AdminSection({ type }) {
 
       {!loading && !error && type === 'clientes' && (
         <div className="admin-card">
-          <table className="admin-table">
-            <thead><tr><th>Cliente</th><th>Celular</th><th>Email</th><th>Estado</th></tr></thead>
-            <tbody>{data.map((client) => <tr key={client.id}><td>{client.firstName} {client.lastName}</td><td>{client.phone}</td><td>{client.email || '—'}</td><td>{client.active ? 'Activo' : 'Inactivo'}</td></tr>)}</tbody>
-          </table>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead><tr><th>Cliente</th><th>Celular</th><th>Email</th><th>Estado</th></tr></thead>
+              <tbody>{data.map((client) => <tr key={client.id}><td data-label="Cliente">{client.firstName} {client.lastName}</td><td data-label="Celular">{client.phone}</td><td data-label="Email">{client.email || '—'}</td><td data-label="Estado">{client.active ? 'Activo' : 'Inactivo'}</td></tr>)}</tbody>
+            </table>
+          </div>
         </div>
       )}
 
       {!loading && !error && type === 'servicios' && (
         <div className="admin-card">
+          <div className="admin-table-wrap">
           <table className="admin-table">
             <thead><tr><th>Servicio</th><th>Categoría</th><th>Duración</th><th>Precio</th><th>Estado</th><th>Acción</th></tr></thead>
             <tbody>{data.map((service) => {
               const editing = editingServiceId === service.id;
               return <tr key={service.id}>
-                <td>{service.name}</td><td>{getCategoryLabel(service.category)}</td><td>{formatDuration(service.durationMinutes)}</td>
-                <td>{editing ? <div style={{ display: 'grid', gap: 6 }}><input className="admin-input" inputMode="decimal" value={servicePrice} onChange={(event) => setServicePrice(event.target.value)} placeholder="Precio" disabled={serviceVariablePrice} /><label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#666' }}><input type="checkbox" checked={serviceVariablePrice} onChange={(event) => setServiceVariablePrice(event.target.checked)} /> Precio a consultar</label></div> : formatPrice(service)}</td>
-                <td>{service.active ? 'Activo' : 'Inactivo'}</td>
-                <td><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{editing ? <><button type="button" className="admin-btn-primary" disabled={saving} onClick={() => savePrice(service)}><Save size={14} /> Guardar</button><button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => setEditingServiceId(null)}>Cancelar</button></> : <><button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => startPriceEdit(service)}><Pencil size={14} /> Precio</button><button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => toggleService(service)}>{service.active ? 'Desactivar' : 'Activar'}</button></>}</div></td>
+                <td data-label="Servicio">{service.name}</td><td data-label="Categoria">{getCategoryLabel(service.category)}</td><td data-label="Duracion">{formatDuration(service.durationMinutes)}</td>
+                <td data-label="Precio">{editing ? <div style={{ display: 'grid', gap: 6 }}><input className="admin-input" inputMode="decimal" value={servicePrice} onChange={(event) => setServicePrice(event.target.value)} placeholder="Precio" disabled={serviceVariablePrice} /><label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#666' }}><input type="checkbox" checked={serviceVariablePrice} onChange={(event) => setServiceVariablePrice(event.target.checked)} /> Precio a consultar</label></div> : formatPrice(service)}</td>
+                <td data-label="Estado">{service.active ? 'Activo' : 'Inactivo'}</td>
+                <td data-label="Accion"><div className="admin-row-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{editing ? <><button type="button" className="admin-btn-primary" disabled={saving} onClick={() => savePrice(service)}><Save size={14} /> Guardar</button><button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => setEditingServiceId(null)}>Cancelar</button></> : <><button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => startPriceEdit(service)}><Pencil size={14} /> Precio</button><button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => toggleService(service)}>{service.active ? 'Desactivar' : 'Activar'}</button></>}</div></td>
               </tr>;
             })}</tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -379,7 +410,7 @@ export function AdminSection({ type }) {
           </div>
           <table className="admin-table">
             <thead><tr><th>Día</th><th>Apertura</th><th>Cierre</th><th>Estado</th></tr></thead>
-            <tbody>{hoursDraft.slice().sort((a, b) => Number(a.dayOfWeek) - Number(b.dayOfWeek)).map((hour) => <tr key={hour.id ?? hour.dayOfWeek}><td>{DAY_LABELS[Number(hour.dayOfWeek)] ?? String(hour.dayOfWeek)}</td><td><input className="admin-input" type="time" value={hour.openingTime} disabled={!hour.active} onChange={(event) => setHoursDraft((prev) => prev.map((item) => item.dayOfWeek === hour.dayOfWeek ? { ...item, openingTime: event.target.value } : item))} /></td><td><input className="admin-input" type="time" value={hour.closingTime} disabled={!hour.active} onChange={(event) => setHoursDraft((prev) => prev.map((item) => item.dayOfWeek === hour.dayOfWeek ? { ...item, closingTime: event.target.value } : item))} /></td><td><label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}><input type="checkbox" checked={hour.active} onChange={(event) => setHoursDraft((prev) => prev.map((item) => item.dayOfWeek === hour.dayOfWeek ? { ...item, active: event.target.checked } : item))} /> {hour.active ? 'Atiende' : 'Cerrado'}</label></td></tr>)}</tbody>
+            <tbody>{hoursDraft.slice().sort((a, b) => Number(a.dayOfWeek) - Number(b.dayOfWeek)).map((hour) => <tr key={hour.id ?? hour.dayOfWeek}><td data-label="Dia">{DAY_LABELS[Number(hour.dayOfWeek)] ?? String(hour.dayOfWeek)}</td><td data-label="Apertura"><input className="admin-input" type="time" value={hour.openingTime} disabled={!hour.active} onChange={(event) => setHoursDraft((prev) => prev.map((item) => item.dayOfWeek === hour.dayOfWeek ? { ...item, openingTime: event.target.value } : item))} /></td><td data-label="Cierre"><input className="admin-input" type="time" value={hour.closingTime} disabled={!hour.active} onChange={(event) => setHoursDraft((prev) => prev.map((item) => item.dayOfWeek === hour.dayOfWeek ? { ...item, closingTime: event.target.value } : item))} /></td><td data-label="Estado"><label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}><input type="checkbox" checked={hour.active} onChange={(event) => setHoursDraft((prev) => prev.map((item) => item.dayOfWeek === hour.dayOfWeek ? { ...item, active: event.target.checked } : item))} /> {hour.active ? 'Atiende' : 'Cerrado'}</label></td></tr>)}</tbody>
           </table>
         </div>
       )}
@@ -388,7 +419,7 @@ export function AdminSection({ type }) {
         <div className="admin-card">
           <table className="admin-table">
             <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th></tr></thead>
-            <tbody>{data.map((user) => <tr key={user.id}><td>{user.firstName} {user.lastName}</td><td>{user.email}</td><td>{String(user.role)}</td><td>{user.active ? 'Activo' : 'Inactivo'}</td></tr>)}</tbody>
+            <tbody>{data.map((user) => <tr key={user.id}><td data-label="Nombre">{user.firstName} {user.lastName}</td><td data-label="Email">{user.email}</td><td data-label="Rol">{String(user.role)}</td><td data-label="Estado">{user.active ? 'Activo' : 'Inactivo'}</td></tr>)}</tbody>
           </table>
         </div>
       )}
@@ -396,8 +427,10 @@ export function AdminSection({ type }) {
       {!loading && !error && type === 'finanzas' && (
         <div style={{ display: 'grid', gap: 18, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
           <div className="admin-card" style={{ padding: 22 }}><div style={{ color: '#777', fontSize: 13 }}>Turnos registrados</div><strong style={{ fontSize: 30 }}>{reservations.length}</strong></div>
+          <div className="admin-card" style={{ padding: 22 }}><div style={{ color: '#777', fontSize: 13 }}>Turnos realizados</div><strong style={{ fontSize: 30 }}>{completedReservations.length}</strong></div>
+          <div className="admin-card" style={{ padding: 22 }}><div style={{ color: '#777', fontSize: 13 }}>Turnos cancelados</div><strong style={{ fontSize: 30 }}>{canceledReservations.length}</strong></div>
           <div className="admin-card" style={{ padding: 22 }}><div style={{ color: '#777', fontSize: 13 }}>Servicios activos</div><strong style={{ fontSize: 30 }}>{activeServices.length}</strong></div>
-          <div className="admin-card" style={{ padding: 22 }}><div style={{ color: '#777', fontSize: 13 }}>Ingresos con precio fijo</div><strong style={{ fontSize: 30 }}>{new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(totalRevenue)}</strong></div>
+          <div className="admin-card" style={{ padding: 22 }}><div style={{ color: '#777', fontSize: 13 }}>Ingresos realizados con precio fijo</div><strong style={{ fontSize: 30 }}>{new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(totalRevenue)}</strong></div>
         </div>
       )}
 

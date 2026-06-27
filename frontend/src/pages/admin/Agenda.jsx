@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { fetchClients, fetchReservations, fetchServices } from '../../services/bookingApi';
 import { clearSession } from '../../utils/auth';
-import { formatTimeLabel, getStatusColor, getStatusLabel } from '../../utils/booking';
+import { formatDateLabel, formatTimeLabel, getStatusColor, getStatusLabel, normalizeStatus } from '../../utils/booking';
 import { AdminMobileNav } from './AdminSection';
 
 const HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
@@ -88,16 +88,6 @@ function formatRange(start, end) {
   return `${start.getDate()} ${months[start.getMonth()]} – ${end.getDate()} ${months[end.getMonth()]} ${end.getFullYear()}`;
 }
 
-function normalizeStatus(status) {
-  const value = String(status).toLowerCase();
-  if (value === '1' || value.includes('pend')) return 'Pendiente';
-  if (value === '2' || value.includes('confirm')) return 'Confirmada';
-  if (value === '3' || value.includes('cancel')) return 'Cancelada';
-  if (value === '4' || value.includes('complet') || value.includes('realiz')) return 'Completada';
-  if (value === '5' || value.includes('ausente')) return 'Ausente';
-  return status;
-}
-
 function SidebarLink({ to, label, icon: Icon, pathname }) {
   const active = pathname === to || (to !== '/admin/dashboard' && pathname.startsWith(to));
   return (
@@ -153,6 +143,10 @@ export default function Agenda() {
       return normalizeStatus(reservation.status) === statusFilter;
     }),
     [reservations, weekDateSet, statusFilter],
+  );
+  const mobileWeekReservations = useMemo(
+    () => [...weekReservations].sort((a, b) => `${a.date} ${a.startTime}`.localeCompare(`${b.date} ${b.startTime}`)),
+    [weekReservations],
   );
 
   const rangeLabel = formatRange(weekDays[0], weekDays[6]);
@@ -250,6 +244,7 @@ export default function Agenda() {
           transition: transform .15s, box-shadow .15s;
         }
         .agenda-event:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,.12); z-index: 2; }
+        .agenda-mobile-list { display: none; }
         @media (max-width: 1100px) {
           .agenda-sidebar { width: 72px !important; padding: 20px 10px !important; }
           .agenda-sidebar-label, .agenda-sidebar-section, .agenda-sidebar-user-text { display: none !important; }
@@ -266,7 +261,9 @@ export default function Agenda() {
           .agenda-calendar-toolbar { padding: 14px !important; }
           .agenda-calendar-title { width: 100%; text-align: center; font-size: 17px !important; }
           .agenda-calendar-switch { width: 100%; justify-content: center; }
-          .agenda-calendar-scroll { -webkit-overflow-scrolling: touch; }
+          .agenda-calendar-scroll { display: none; }
+          .agenda-mobile-list { display: grid; gap: 10px; padding: 14px; }
+          .agenda-mobile-card { border: 1px solid #f0ecf2; border-radius: 12px; padding: 12px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.03); }
         }
       `}</style>
 
@@ -448,6 +445,36 @@ export default function Agenda() {
                 <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
                 Cargando agenda...
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              </div>
+            )}
+
+            {!loading && view === 'semana' && (
+              <div className="agenda-mobile-list">
+                {mobileWeekReservations.map((reservation) => {
+                  const status = normalizeStatus(reservation.status);
+                  const statusColor = getStatusColor(status);
+                  const service = servicesMap.get(reservation.serviceId);
+                  const client = clientsMap.get(reservation.clientId);
+                  const clientName = client ? `${client.firstName} ${client.lastName}` : 'Cliente';
+
+                  return (
+                    <article key={reservation.id} className="agenda-mobile-card">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
+                        <div>
+                          <strong style={{ display: 'block', color: '#1a1218', fontSize: 14 }}>{service?.name ?? 'Servicio'}</strong>
+                          <span style={{ display: 'block', marginTop: 4, color: '#777', fontSize: 12 }}>{clientName}</span>
+                        </div>
+                        <span style={{ flexShrink: 0, borderRadius: 999, padding: '4px 8px', background: `${statusColor}18`, color: statusColor, fontSize: 11, fontWeight: 700 }}>
+                          {getStatusLabel(status)}
+                        </span>
+                      </div>
+                      <div style={{ display: 'grid', gap: 4, marginTop: 10, color: '#666', fontSize: 12 }}>
+                        <span>{formatDateLabel(reservation.date)}</span>
+                        <span>{formatTimeLabel(reservation.startTime)} â€“ {formatTimeLabel(reservation.endTime)}</span>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             )}
 

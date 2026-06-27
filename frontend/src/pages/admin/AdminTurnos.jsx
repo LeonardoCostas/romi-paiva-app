@@ -9,18 +9,8 @@ import {
   fetchReservations,
   fetchServices,
 } from '../../services/bookingApi';
-import { formatDateLabel, formatDuration, formatPrice, formatTimeLabel, getStatusLabel } from '../../utils/booking';
+import { formatDateLabel, formatDuration, formatPrice, formatTimeLabel, getStatusLabel, normalizeStatus } from '../../utils/booking';
 import { AdminLayout } from './AdminSection';
-
-function normalizeStatus(status) {
-  const value = String(status).toLowerCase();
-  if (value === '1' || value.includes('pend')) return 'Pendiente';
-  if (value === '2' || value.includes('confirm')) return 'Confirmada';
-  if (value === '3' || value.includes('cancel')) return 'Cancelada';
-  if (value === '4' || value.includes('complet') || value.includes('realiz')) return 'Completada';
-  if (value === '5' || value.includes('ausente')) return 'Ausente';
-  return status;
-}
 
 export default function AdminTurnos() {
   const [reservations, setReservations] = useState([]);
@@ -125,6 +115,7 @@ export default function AdminTurnos() {
         </div>
       ) : (
         <div className="admin-card">
+          <div className="admin-table-wrap">
           <table className="admin-table">
             <thead>
               <tr>
@@ -148,13 +139,13 @@ export default function AdminTurnos() {
 
                 return (
                   <tr key={reservation.id}>
-                    <td>{formatDateLabel(reservation.date)}</td>
-                    <td>{client ? `${client.firstName} ${client.lastName}` : 'Cliente'}</td>
-                    <td>{service?.name ?? 'Servicio'}<br /><span style={{ color: '#888' }}>{service ? formatPrice(service) : ''}</span></td>
+                    <td data-label="Fecha">{formatDateLabel(reservation.date)}</td>
+                    <td data-label="Cliente">{client ? `${client.firstName} ${client.lastName}` : 'Cliente'}</td>
+                    <td data-label="Servicio">{service?.name ?? 'Servicio'}<br /><span style={{ color: '#888' }}>{service ? formatPrice(service) : ''}</span></td>
                     <td>{formatTimeLabel(reservation.startTime)} – {formatTimeLabel(reservation.endTime)}</td>
-                    <td>{getStatusLabel(status)}</td>
-                    <td>
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <td data-label="Estado">{getStatusLabel(status)}</td>
+                    <td data-label="Acciones">
+                      <div className="admin-row-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         {canConfirm && <button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => runAction(() => confirmReservation(reservation.id))}>Confirmar</button>}
                         {canComplete && <button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => runAction(() => completeReservation(reservation.id))}>Realizado</button>}
                         {canCancel && <button type="button" className="admin-btn-danger" disabled={saving} onClick={() => runAction(() => cancelReservation(reservation.id))}>Cancelar</button>}
@@ -165,6 +156,7 @@ export default function AdminTurnos() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </AdminLayout>
