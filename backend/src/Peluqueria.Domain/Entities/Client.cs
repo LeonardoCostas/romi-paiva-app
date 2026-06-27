@@ -8,7 +8,7 @@ public sealed class Client : BaseEntity
     {
     }
 
-    public Client(string firstName, string lastName, string phone, string? email, DateOnly? birthDate, string? notes, bool active = true)
+    public Client(string firstName, string lastName, string phone, string? email, DateOnly? birthDate, string? notes, Guid? userId = null, bool active = true)
     {
         FirstName = firstName;
         LastName = lastName;
@@ -16,9 +16,11 @@ public sealed class Client : BaseEntity
         Email = email?.Trim().ToLowerInvariant();
         BirthDate = birthDate;
         Notes = notes;
+        UserId = userId;
         Active = active;
     }
 
+    public Guid? UserId { get; private set; }
     public string FirstName { get; private set; } = string.Empty;
     public string LastName { get; private set; } = string.Empty;
     public string Phone { get; private set; } = string.Empty;
@@ -42,5 +44,22 @@ public sealed class Client : BaseEntity
     {
         Active = active;
         Touch();
+    }
+
+    public bool LinkToUser(Guid userId)
+    {
+        if (UserId == userId)
+        {
+            return true;
+        }
+
+        if (UserId.HasValue)
+        {
+            return false;
+        }
+
+        UserId = userId;
+        Touch();
+        return true;
     }
 }

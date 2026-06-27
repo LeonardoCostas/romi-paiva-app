@@ -65,10 +65,15 @@ public sealed class AuthService
         var client = await _clientRepository.GetByEmailAsync(email, cancellationToken);
         if (client is null)
         {
-            await _clientRepository.AddAsync(new Client(firstName, lastName, phone, email, null, null), cancellationToken);
+            await _clientRepository.AddAsync(new Client(firstName, lastName, phone, email, null, null, user.Id), cancellationToken);
         }
         else
         {
+            if (!client.LinkToUser(user.Id))
+            {
+                return Result<AuthResponse>.Fail("Ya existe un perfil de cliente asociado a otro usuario.");
+            }
+
             client.Update(firstName, lastName, phone, email, client.BirthDate, client.Notes);
         }
 
@@ -116,10 +121,19 @@ public sealed class AuthService
 
         if (user.Role == UserRole.Cliente)
         {
-            var client = await _clientRepository.GetByEmailAsync(normalizedEmail, cancellationToken);
+            var client = await _clientRepository.GetByUserIdAsync(user.Id, cancellationToken)
+                ?? await _clientRepository.GetByEmailAsync(normalizedEmail, cancellationToken);
+
             if (client is null)
             {
-                await _clientRepository.AddAsync(new Client(user.FirstName, user.LastName, string.Empty, normalizedEmail, null, null), cancellationToken);
+                await _clientRepository.AddAsync(new Client(user.FirstName, user.LastName, string.Empty, normalizedEmail, null, null, user.Id), cancellationToken);
+            }
+            else
+            {
+                if (!client.LinkToUser(user.Id))
+                {
+                    return Result<AuthResponse>.Fail("Ya existe un perfil de cliente asociado a otro usuario.");
+                }
             }
         }
 

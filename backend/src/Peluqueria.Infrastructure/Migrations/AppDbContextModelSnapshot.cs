@@ -95,11 +95,17 @@ namespace Peluqueria.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email");
 
                     b.HasIndex("Phone");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("clients", (string)null);
                 });
@@ -278,6 +284,14 @@ namespace Peluqueria.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("Peluqueria.Domain.Entities.Client", b =>
+                {
+                    b.HasOne("Peluqueria.Domain.Entities.User", null)
+                        .WithOne()
+                        .HasForeignKey("Peluqueria.Domain.Entities.Client", "UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 #pragma warning restore 612, 618
         }

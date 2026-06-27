@@ -17,5 +17,11 @@ public sealed class ClientConfiguration : IEntityTypeConfiguration<Client>
         builder.Property(x => x.Notes).HasMaxLength(1000);
         builder.HasIndex(x => x.Email);
         builder.HasIndex(x => x.Phone);
+        builder.HasIndex(x => x.UserId).IsUnique();
+        builder
+            .HasOne<User>()
+            .WithOne()
+            .HasForeignKey<Client>(x => x.UserId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

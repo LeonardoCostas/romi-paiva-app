@@ -83,9 +83,14 @@ public sealed class ClientService
         }
 
         var existing = await _clientRepository.GetByEmailAsync(email, cancellationToken);
+        if (existing is not null && !existing.LinkToUser(_currentUserService.UserId))
+        {
+            return Result<ClientResponse>.Fail("Ya existe un perfil de cliente asociado a otro usuario.");
+        }
+
         if (existing is null)
         {
-            var client = new Client(request.FirstName, request.LastName, request.Phone, email, request.BirthDate, request.Notes);
+            var client = new Client(request.FirstName, request.LastName, request.Phone, email, request.BirthDate, request.Notes, _currentUserService.UserId);
             await _clientRepository.AddAsync(client, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return Result<ClientResponse>.Ok(Map(client));
@@ -99,7 +104,28 @@ public sealed class ClientService
     private async Task<Client?> GetCurrentClientAsync(CancellationToken cancellationToken)
     {
         var email = NormalizeEmail(_currentUserService.Email);
-        return string.IsNullOrEmpty(email) ? null : await _clientRepository.GetByEmailAsync(email, cancellationToken);
+        if (_currentUserService.UserId != Guid.Empty)
+        {
+            var clientByUserId = await _clientRepository.GetByUserIdAsync(_currentUserService.UserId, cancellationToken);
+            if (clientByUserId is not null)
+            {
+                return clientByUserId;
+            }
+        }
+
+        if (string.IsNullOrEmpty(email))
+        {
+            return null;
+        }
+
+        var clientByEmail = await _clientRepository.GetByEmailAsync(email, cancellationToken);
+        if (clientByEmail is not null && clientByEmail.UserId is null && _currentUserService.UserId != Guid.Empty)
+        {
+            clientByEmail.LinkToUser(_currentUserService.UserId);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        return clientByEmail;
     }
 
     private static string NormalizeEmail(string? email) => email?.Trim().ToLowerInvariant() ?? string.Empty;

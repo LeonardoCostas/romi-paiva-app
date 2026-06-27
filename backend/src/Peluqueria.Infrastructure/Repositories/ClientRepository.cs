@@ -17,6 +17,9 @@ public sealed class ClientRepository : IClientRepository
     public Task<Client?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
         _dbContext.Clients.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
+    public Task<Client?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken) =>
+        _dbContext.Clients.FirstOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+
     public Task<Client?> GetByEmailAsync(string email, CancellationToken cancellationToken) =>
         _dbContext.Clients.FirstOrDefaultAsync(x => x.Email == email.Trim().ToLowerInvariant(), cancellationToken);
 
