@@ -473,7 +473,7 @@ export default function Agenda() {
                       </div>
                       <div style={{ display: 'grid', gap: 4, marginTop: 10, color: '#666', fontSize: 12 }}>
                         <span>{formatDateLabel(reservation.date)}</span>
-                        <span>{formatTimeLabel(reservation.startTime)} â€“ {formatTimeLabel(reservation.endTime)}</span>
+                        <span>{formatTimeLabel(reservation.startTime)} - {formatTimeLabel(reservation.endTime)}</span>
                       </div>
                     </article>
                   );
