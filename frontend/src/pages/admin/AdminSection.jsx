@@ -242,6 +242,10 @@ function ErrorState({ message }) {
   return <div style={{ padding: 16, borderRadius: 12, border: '1px solid #f1b8b8', background: '#fff5f5', color: '#9a3b3b' }}>{message}</div>;
 }
 
+function EmptyState({ message }) {
+  return <div className="admin-card" style={{ padding: 28, color: '#777', textAlign: 'center', fontSize: 14 }}>{message}</div>;
+}
+
 export function AdminSection({ type }) {
   const meta = SECTION_META[type] ?? SECTION_META.configuracion;
   const [data, setData] = useState([]);
@@ -290,8 +294,8 @@ export function AdminSection({ type }) {
           result = { serviceData, hourData };
         }
         if (!cancelled) {
-          setData(result);
-          if (type === 'horarios') setHoursDraft(result.map((hour) => ({ ...hour, openingTime: toTimeInput(hour.openingTime), closingTime: toTimeInput(hour.closingTime) })));
+          setData(Array.isArray(result) ? result : []);
+          if (type === 'horarios' && Array.isArray(result)) setHoursDraft(result.map((hour) => ({ ...hour, openingTime: toTimeInput(hour.openingTime), closingTime: toTimeInput(hour.closingTime) })));
         }
       } catch (err) {
         console.error(err);
@@ -387,22 +391,51 @@ export function AdminSection({ type }) {
       )}
 
       {!loading && !error && type === 'servicios' && (
-        <div className="admin-card">
-          <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead><tr><th>Servicio</th><th>Categoría</th><th>Duración</th><th>Precio</th><th>Estado</th><th>Acción</th></tr></thead>
-            <tbody>{data.map((service) => {
-              const editing = editingServiceId === service.id;
-              return <tr key={service.id}>
-                <td data-label="Servicio">{service.name}</td><td data-label="Categoria">{getCategoryLabel(service.category)}</td><td data-label="Duracion">{formatDuration(service.durationMinutes)}</td>
-                <td data-label="Precio">{editing ? <div style={{ display: 'grid', gap: 6 }}><input className="admin-input" inputMode="decimal" value={servicePrice} onChange={(event) => setServicePrice(event.target.value)} placeholder="Precio" disabled={serviceVariablePrice} /><label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#666' }}><input type="checkbox" checked={serviceVariablePrice} onChange={(event) => setServiceVariablePrice(event.target.checked)} /> Precio a consultar</label></div> : formatPrice(service)}</td>
-                <td data-label="Estado">{service.active ? 'Activo' : 'Inactivo'}</td>
-                <td data-label="Accion"><div className="admin-row-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{editing ? <><button type="button" className="admin-btn-primary" disabled={saving} onClick={() => savePrice(service)}><Save size={14} /> Guardar</button><button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => setEditingServiceId(null)}>Cancelar</button></> : <><button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => startPriceEdit(service)}><Pencil size={14} /> Precio</button><button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => toggleService(service)}>{service.active ? 'Desactivar' : 'Activar'}</button></>}</div></td>
-              </tr>;
-            })}</tbody>
-          </table>
+        data.length === 0 ? <EmptyState message="No hay servicios cargados para administrar." /> : (
+          <div className="admin-card">
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead><tr><th>Servicio</th><th>Categoria</th><th>Duracion</th><th>Precio</th><th>Estado</th><th>Accion</th></tr></thead>
+                <tbody>{data.map((service) => {
+                  const editing = editingServiceId === service.id;
+                  return (
+                    <tr key={service.id}>
+                      <td data-label="Servicio">{service.name || 'Servicio sin nombre'}</td>
+                      <td data-label="Categoria">{getCategoryLabel(service.category)}</td>
+                      <td data-label="Duracion">{formatDuration(service.durationMinutes)}</td>
+                      <td data-label="Precio">
+                        {editing ? (
+                          <div style={{ display: 'grid', gap: 6 }}>
+                            <input className="admin-input" inputMode="decimal" value={servicePrice} onChange={(event) => setServicePrice(event.target.value)} placeholder="Precio" disabled={serviceVariablePrice} />
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#666' }}>
+                              <input type="checkbox" checked={serviceVariablePrice} onChange={(event) => setServiceVariablePrice(event.target.checked)} /> Precio a consultar
+                            </label>
+                          </div>
+                        ) : formatPrice(service)}
+                      </td>
+                      <td data-label="Estado">{service.active ? 'Activo' : 'Inactivo'}</td>
+                      <td data-label="Accion">
+                        <div className="admin-row-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                          {editing ? (
+                            <>
+                              <button type="button" className="admin-btn-primary" disabled={saving} onClick={() => savePrice(service)}><Save size={14} /> Guardar</button>
+                              <button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => setEditingServiceId(null)}>Cancelar</button>
+                            </>
+                          ) : (
+                            <>
+                              <button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => startPriceEdit(service)}><Pencil size={14} /> Precio</button>
+                              <button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => toggleService(service)}>{service.active ? 'Desactivar' : 'Activar'}</button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}</tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )
       )}
 
       {!loading && !error && type === 'horarios' && (
