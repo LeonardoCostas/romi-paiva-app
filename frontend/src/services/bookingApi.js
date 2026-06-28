@@ -3,7 +3,7 @@ import { fallbackBusinessHours, fallbackServices } from '../data/bookingFallback
 
 export async function fetchServices(active = true) {
   try {
-    const response = await api.get('/v1/services', { params: { active } });
+    const response = await api.get('/v1/services', { params: active == null ? {} : { active } });
     return response.data?.data ?? [];
   } catch (error) {
     if (active) return fallbackServices;

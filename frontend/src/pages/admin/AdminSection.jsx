@@ -286,7 +286,7 @@ export function AdminSection({ type }) {
     }
 
     try {
-      const [reservationData, serviceData] = await Promise.all([fetchReservations(), fetchServices(false)]);
+      const [reservationData, serviceData] = await Promise.all([fetchReservations(), fetchServices(null)]);
       setReservations(reservationData);
       setServices(serviceData);
       setFinanceUpdatedAt(new Date());
@@ -307,14 +307,14 @@ export function AdminSection({ type }) {
       try {
         let result = [];
         if (type === 'clientes') result = await fetchClients({ active: true });
-        if (type === 'servicios') result = await fetchServices(false);
+        if (type === 'servicios') result = await fetchServices(null);
         if (type === 'horarios') result = await fetchBusinessHours();
         if (type === 'profesionales') result = (await fetchUsers()).filter((user) => ['Admin', 'Recepcionista', 'Profesional', 1, 2, 3].includes(user.role));
         if (type === 'finanzas') {
           await refreshFinanceStats({ silent: true });
         }
         if (type === 'configuracion') {
-          const [serviceData, hourData] = await Promise.all([fetchServices(false), fetchBusinessHours()]);
+          const [serviceData, hourData] = await Promise.all([fetchServices(null), fetchBusinessHours()]);
           result = { serviceData, hourData };
         }
         if (!cancelled) {

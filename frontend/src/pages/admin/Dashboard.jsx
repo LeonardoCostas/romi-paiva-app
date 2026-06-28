@@ -40,7 +40,7 @@ export default function DashboardAdmin() {
       try {
         const [reservationData, serviceData, clientData] = await Promise.all([
           fetchReservations(),
-          fetchServices(false),
+          fetchServices(null),
           fetchClients({ active: true }),
         ]);
 
