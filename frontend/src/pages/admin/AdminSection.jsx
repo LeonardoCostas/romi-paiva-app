@@ -46,7 +46,6 @@ const NAV_GESTION = [
 
 const NAV_REPORTES = [
   { to: '/admin/finanzas', label: 'Finanzas', icon: DollarSign },
-  { to: '/admin/configuracion', label: 'Configuración', icon: Settings },
 ];
 
 const SECTION_META = {

@@ -15,7 +15,6 @@ import {
   LogOut,
   Plus,
   Scissors,
-  Settings,
   User,
   Users,
 } from 'lucide-react';
@@ -43,7 +42,6 @@ const NAV_GESTION = [
 
 const NAV_REPORTES = [
   { to: '/admin/finanzas', label: 'Finanzas', icon: DollarSign },
-  { to: '/admin/configuracion', label: 'Configuración', icon: Settings },
 ];
 
 function startOfWeek(date) {
