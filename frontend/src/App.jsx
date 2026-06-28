@@ -44,7 +44,7 @@ function AppContent() {
           <Route path="/admin/profesionales" element={<AdminSection type="profesionales" />} />
           <Route path="/admin/horarios" element={<AdminSection type="horarios" />} />
           <Route path="/admin/finanzas" element={<AdminSection type="finanzas" />} />
-          <Route path="/admin/configuracion" element={<AdminSection type="configuracion" />} />
+          <Route path="/admin/configuracion" element={<Navigate to="/admin/dashboard" replace />} />
         </Route>
       </Routes>
     </div>
