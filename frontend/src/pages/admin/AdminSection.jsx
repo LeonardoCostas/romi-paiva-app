@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   CalendarDays,
@@ -267,6 +267,7 @@ export function AdminSection({ type }) {
   const [serviceVariablePrice, setServiceVariablePrice] = useState(false);
   const [hoursDraft, setHoursDraft] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [financeUpdatedAt, setFinanceUpdatedAt] = useState(null);
 
   const activeServices = useMemo(() => services.filter((service) => service.active), [services]);
   const completedReservations = useMemo(() => reservations.filter((reservation) => isCompletedStatus(reservation.status)), [reservations]);
@@ -278,6 +279,25 @@ export function AdminSection({ type }) {
       return sum + (service?.price && !service.priceIsVariable ? service.price : 0);
     }, 0);
   }, [completedReservations, services]);
+
+  const refreshFinanceStats = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) {
+      setSaving(true);
+      setError(null);
+    }
+
+    try {
+      const [reservationData, serviceData] = await Promise.all([fetchReservations(), fetchServices(false)]);
+      setReservations(reservationData);
+      setServices(serviceData);
+      setFinanceUpdatedAt(new Date());
+    } catch (err) {
+      console.error(err);
+      if (!silent) setError('No pudimos actualizar finanzas. Revisá permisos y conexión con la API.');
+    } finally {
+      if (!silent) setSaving(false);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -292,11 +312,7 @@ export function AdminSection({ type }) {
         if (type === 'horarios') result = await fetchBusinessHours();
         if (type === 'profesionales') result = (await fetchUsers()).filter((user) => ['Admin', 'Recepcionista', 'Profesional', 1, 2, 3].includes(user.role));
         if (type === 'finanzas') {
-          const [reservationData, serviceData] = await Promise.all([fetchReservations(), fetchServices(false)]);
-          if (!cancelled) {
-            setReservations(reservationData);
-            setServices(serviceData);
-          }
+          await refreshFinanceStats({ silent: true });
         }
         if (type === 'configuracion') {
           const [serviceData, hourData] = await Promise.all([fetchServices(false), fetchBusinessHours()]);
@@ -318,7 +334,25 @@ export function AdminSection({ type }) {
     return () => {
       cancelled = true;
     };
-  }, [type]);
+  }, [type, refreshFinanceStats]);
+
+  useEffect(() => {
+    if (type !== 'finanzas') return undefined;
+
+    const refreshIfVisible = () => {
+      if (document.visibilityState === 'visible') {
+        refreshFinanceStats({ silent: true });
+      }
+    };
+
+    window.addEventListener('focus', refreshIfVisible);
+    document.addEventListener('visibilitychange', refreshIfVisible);
+
+    return () => {
+      window.removeEventListener('focus', refreshIfVisible);
+      document.removeEventListener('visibilitychange', refreshIfVisible);
+    };
+  }, [type, refreshFinanceStats]);
 
   const toggleService = async (service) => {
     try {
@@ -471,6 +505,17 @@ export function AdminSection({ type }) {
 
       {!loading && !error && type === 'finanzas' && (
         <div style={{ display: 'grid', gap: 18, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+          <div className="admin-card" style={{ gridColumn: '1 / -1', padding: 18, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+            <div>
+              <strong style={{ color: '#333' }}>Resumen financiero</strong>
+              <div style={{ marginTop: 4, color: '#777', fontSize: 12 }}>
+                {financeUpdatedAt ? `Actualizado ${financeUpdatedAt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}` : 'Datos cargados desde la API'}
+              </div>
+            </div>
+            <button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => refreshFinanceStats()}>
+              {saving ? 'Actualizando...' : 'Actualizar'}
+            </button>
+          </div>
           <div className="admin-card" style={{ padding: 22 }}><div style={{ color: '#777', fontSize: 13 }}>Turnos registrados</div><strong style={{ fontSize: 30 }}>{reservations.length}</strong></div>
           <div className="admin-card" style={{ padding: 22 }}><div style={{ color: '#777', fontSize: 13 }}>Turnos realizados</div><strong style={{ fontSize: 30 }}>{completedReservations.length}</strong></div>
           <div className="admin-card" style={{ padding: 22 }}><div style={{ color: '#777', fontSize: 13 }}>Turnos cancelados</div><strong style={{ fontSize: 30 }}>{canceledReservations.length}</strong></div>
