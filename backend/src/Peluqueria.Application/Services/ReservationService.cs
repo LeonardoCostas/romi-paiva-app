@@ -214,6 +214,27 @@ public sealed class ReservationService
         return Result<ReservationResponse>.Ok(Map(reservation));
     }
 
+    public async Task<Result<ReservationResponse>> MarkAbsentAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var reservation = await _reservationRepository.GetByIdAsync(id, cancellationToken);
+        if (reservation is null)
+        {
+            return Result<ReservationResponse>.Fail("Reserva no encontrada.");
+        }
+
+        try
+        {
+            reservation.MarkAbsent();
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Result<ReservationResponse>.Fail(exception.Message);
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result<ReservationResponse>.Ok(Map(reservation));
+    }
+
     public async Task<Result<AvailabilityResponse>> CheckAvailabilityAsync(Guid serviceId, DateOnly date, TimeOnly startTime, CancellationToken cancellationToken)
     {
         var validation = await ValidateReservationAsync(Guid.Empty, serviceId, date, startTime, null, cancellationToken, validateClient: false, validateEyelashRules: false);

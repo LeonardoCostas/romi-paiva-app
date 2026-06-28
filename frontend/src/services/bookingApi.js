@@ -79,6 +79,11 @@ export async function completeReservation(id) {
   return response.data;
 }
 
+export async function markReservationAbsent(id) {
+  const response = await api.patch(`/v1/reservations/${id}/absent`);
+  return response.data;
+}
+
 export async function updateServiceStatus(id, active) {
   const response = await api.patch(`/v1/services/${id}/status`, { active });
   return response.data;

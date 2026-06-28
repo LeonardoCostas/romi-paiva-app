@@ -8,6 +8,7 @@ import {
   fetchClients,
   fetchReservations,
   fetchServices,
+  markReservationAbsent,
 } from '../../services/bookingApi';
 import { formatDateLabel, formatDuration, formatPrice, formatTimeLabel, getStatusLabel, normalizeStatus } from '../../utils/booking';
 import { AdminLayout } from './AdminSection';
@@ -136,18 +137,20 @@ export default function AdminTurnos() {
                 const canConfirm = status === 'Pendiente';
                 const canComplete = status === 'Confirmada';
                 const canCancel = status === 'Pendiente' || status === 'Confirmada';
+                const canMarkAbsent = status === 'Pendiente' || status === 'Confirmada';
 
                 return (
                   <tr key={reservation.id}>
                     <td data-label="Fecha">{formatDateLabel(reservation.date)}</td>
                     <td data-label="Cliente">{client ? `${client.firstName} ${client.lastName}` : 'Cliente'}</td>
                     <td data-label="Servicio">{service?.name ?? 'Servicio'}<br /><span style={{ color: '#888' }}>{service ? formatPrice(service) : ''}</span></td>
-                    <td>{formatTimeLabel(reservation.startTime)} – {formatTimeLabel(reservation.endTime)}</td>
+                    <td>{formatTimeLabel(reservation.startTime)} - {formatTimeLabel(reservation.endTime)}</td>
                     <td data-label="Estado">{getStatusLabel(status)}</td>
                     <td data-label="Acciones">
                       <div className="admin-row-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         {canConfirm && <button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => runAction(() => confirmReservation(reservation.id))}>Confirmar</button>}
                         {canComplete && <button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => runAction(() => completeReservation(reservation.id))}>Realizado</button>}
+                        {canMarkAbsent && <button type="button" className="admin-btn-ghost" disabled={saving} onClick={() => runAction(() => markReservationAbsent(reservation.id))}>Ausente</button>}
                         {canCancel && <button type="button" className="admin-btn-danger" disabled={saving} onClick={() => runAction(() => cancelReservation(reservation.id))}>Cancelar</button>}
                       </div>
                     </td>

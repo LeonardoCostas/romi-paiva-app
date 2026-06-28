@@ -102,6 +102,17 @@ public sealed class ReservationsController : ControllerBase
         return ApiResponseFactory.FromResult(this, result);
     }
 
+    [Authorize(Roles = nameof(UserRole.Admin))]
+    [HttpPatch("{id:guid}/absent")]
+    public async Task<ActionResult<ApiResponse<ReservationResponse>>> MarkAbsent(
+        Guid id,
+        [FromServices] ReservationService reservationService,
+        CancellationToken cancellationToken)
+    {
+        var result = await reservationService.MarkAbsentAsync(id, cancellationToken);
+        return ApiResponseFactory.FromResult(this, result);
+    }
+
     [AllowAnonymous]
     [HttpGet("availability")]
     public async Task<ActionResult<ApiResponse<AvailabilityResponse>>> CheckAvailability(
