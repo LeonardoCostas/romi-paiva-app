@@ -44,13 +44,7 @@ public sealed class ReservationService
 
     public async Task<Result<IReadOnlyList<ReservationResponse>>> GetMineAsync(CancellationToken cancellationToken)
     {
-        var email = _currentUserService.Email?.Trim().ToLowerInvariant();
-        if (string.IsNullOrEmpty(email))
-        {
-            return Result<IReadOnlyList<ReservationResponse>>.Fail("No se pudo determinar el email del usuario autenticado.");
-        }
-
-        var client = await _clientRepository.GetByEmailAsync(email, cancellationToken);
+        var client = await GetCurrentClientAsync(cancellationToken);
         if (client is null)
         {
             return Result<IReadOnlyList<ReservationResponse>>.Ok(Array.Empty<ReservationResponse>());
@@ -63,20 +57,28 @@ public sealed class ReservationService
     public async Task<Result<ReservationResponse>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         var reservation = await _reservationRepository.GetByIdAsync(id, cancellationToken);
-        return reservation is null ? Result<ReservationResponse>.Fail("Reserva no encontrada.") : Result<ReservationResponse>.Ok(Map(reservation));
+        if (reservation is null)
+        {
+            return Result<ReservationResponse>.Fail("Reserva no encontrada.");
+        }
+
+        if (_currentUserService.Role == UserRole.Cliente)
+        {
+            var client = await GetCurrentClientAsync(cancellationToken);
+            if (client is null || reservation.ClientId != client.Id)
+            {
+                return Result<ReservationResponse>.Fail("No tenes permiso para ver esta reserva.");
+            }
+        }
+
+        return Result<ReservationResponse>.Ok(Map(reservation));
     }
 
     public async Task<Result<ReservationResponse>> CreateAsync(CreateReservationRequest request, CancellationToken cancellationToken)
     {
         if (_currentUserService.Role == UserRole.Cliente)
         {
-            var email = _currentUserService.Email?.Trim().ToLowerInvariant();
-            if (string.IsNullOrEmpty(email))
-            {
-                return Result<ReservationResponse>.Fail("No se pudo determinar el email del usuario autenticado.");
-            }
-
-            var ownClient = await _clientRepository.GetByEmailAsync(email, cancellationToken);
+            var ownClient = await GetCurrentClientAsync(cancellationToken);
             if (ownClient is null || ownClient.Id != request.ClientId)
             {
                 return Result<ReservationResponse>.Fail("Solo podés reservar turnos para tu perfil de cliente.");
@@ -127,7 +129,15 @@ public sealed class ReservationService
         }
 
         var endTime = request.StartTime.AddMinutes(validation.Value!.Service.DurationMinutes);
-        reservation.Reschedule(request.Date, request.StartTime, endTime, request.Notes);
+        try
+        {
+            reservation.Reschedule(request.Date, request.StartTime, endTime, request.Notes);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Result<ReservationResponse>.Fail(exception.Message);
+        }
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result<ReservationResponse>.Ok(Map(reservation), validation.Value.Warning);
     }
@@ -140,7 +150,15 @@ public sealed class ReservationService
             return Result<ReservationResponse>.Fail("Reserva no encontrada.");
         }
 
-        reservation.Confirm();
+        try
+        {
+            reservation.Confirm();
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Result<ReservationResponse>.Fail(exception.Message);
+        }
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result<ReservationResponse>.Ok(Map(reservation));
     }
@@ -155,14 +173,22 @@ public sealed class ReservationService
 
         if (_currentUserService.Role == UserRole.Cliente)
         {
-            var client = await _clientRepository.GetByEmailAsync(_currentUserService.Email.Trim().ToLowerInvariant(), cancellationToken);
+            var client = await GetCurrentClientAsync(cancellationToken);
             if (client is null || reservation.ClientId != client.Id)
             {
                 return Result<ReservationResponse>.Fail("No tenés permiso para cancelar esta reserva.");
             }
         }
 
-        reservation.Cancel();
+        try
+        {
+            reservation.Cancel();
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Result<ReservationResponse>.Fail(exception.Message);
+        }
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result<ReservationResponse>.Ok(Map(reservation));
     }
@@ -175,7 +201,15 @@ public sealed class ReservationService
             return Result<ReservationResponse>.Fail("Reserva no encontrada.");
         }
 
-        reservation.Complete();
+        try
+        {
+            reservation.Complete();
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Result<ReservationResponse>.Fail(exception.Message);
+        }
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result<ReservationResponse>.Ok(Map(reservation));
     }
@@ -264,6 +298,23 @@ public sealed class ReservationService
         }
 
         return Result<ReservationValidationContext>.Ok(new ReservationValidationContext(service, client, warning), warning);
+    }
+
+    private async Task<Client?> GetCurrentClientAsync(CancellationToken cancellationToken)
+    {
+        if (_currentUserService.UserId != Guid.Empty)
+        {
+            var byUserId = await _clientRepository.GetByUserIdAsync(_currentUserService.UserId, cancellationToken);
+            if (byUserId is not null)
+            {
+                return byUserId;
+            }
+        }
+
+        var email = _currentUserService.Email?.Trim().ToLowerInvariant();
+        return string.IsNullOrWhiteSpace(email)
+            ? null
+            : await _clientRepository.GetByEmailAsync(email, cancellationToken);
     }
 
     private static ReservationResponse Map(Reservation reservation) =>
