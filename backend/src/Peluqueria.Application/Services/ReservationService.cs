@@ -236,6 +236,13 @@ public sealed class ReservationService
         bool validateClient = true,
         bool validateEyelashRules = true)
     {
+        var now = GetBusinessNow();
+        var today = DateOnly.FromDateTime(now);
+        if (date < today || (date == today && startTime <= TimeOnly.FromDateTime(now)))
+        {
+            return Result<ReservationValidationContext>.Fail("No se pueden reservar turnos en fechas u horarios pasados.");
+        }
+
         var service = await _serviceRepository.GetByIdAsync(serviceId, cancellationToken);
         if (service is null || !service.Active)
         {
@@ -315,6 +322,29 @@ public sealed class ReservationService
         return string.IsNullOrWhiteSpace(email)
             ? null
             : await _clientRepository.GetByEmailAsync(email, cancellationToken);
+    }
+
+    private static DateTime GetBusinessNow()
+    {
+        try
+        {
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires"));
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            try
+            {
+                return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time"));
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                return DateTime.UtcNow.AddHours(-3);
+            }
+        }
+        catch (InvalidTimeZoneException)
+        {
+            return DateTime.UtcNow.AddHours(-3);
+        }
     }
 
     private static ReservationResponse Map(Reservation reservation) =>

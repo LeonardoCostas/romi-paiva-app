@@ -34,7 +34,7 @@ public sealed class ClientsController : ControllerBase
         return ApiResponseFactory.FromResult(this, result);
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPost]
     public async Task<ActionResult<ApiResponse<ClientResponse>>> Create(
         [FromServices] ClientService clientService,
