@@ -133,6 +133,7 @@ export default function Inicio() {
           .rp-nav { padding: 12px 18px !important; gap: 12px !important; }
           .rp-brand { min-width: 0; gap: 8px !important; }
           .rp-brand-divider, .rp-brand-script, .rp-nav-link { display: none !important; }
+          .rp-nav-link.rp-admin-link { display: flex !important; font-size: 10px !important; letter-spacing: .04em !important; padding: 8px 6px !important; white-space: nowrap; }
           .rp-btn-reservar { padding: 10px 13px !important; gap: 6px !important; font-size: 10px !important; letter-spacing: .04em !important; white-space: nowrap; }
           .rp-main { padding: 24px 20px 16px !important; gap: 28px !important; }
           .rp-headline-lg { font-size: 36px !important; }
@@ -193,7 +194,7 @@ export default function Inicio() {
             <Link to="/login" className="rp-nav-link"><User size={14} /> Iniciar sesión</Link>
           )}
           {isLoggedIn && canAccessAdmin && (
-            <Link to="/admin/agenda" className="rp-nav-link"><User size={14} /> Panel admin</Link>
+            <Link to="/admin/agenda" className="rp-nav-link rp-admin-link"><User size={14} /> Panel admin</Link>
           )}
           {isLoggedIn && !canAccessAdmin && (
             <Link to="/mis-turnos" className="rp-nav-link"><User size={14} /> Mis turnos</Link>

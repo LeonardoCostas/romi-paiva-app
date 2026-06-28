@@ -9,6 +9,7 @@ import {
   Clock,
   DollarSign,
   Filter,
+  Globe2,
   LayoutDashboard,
   Loader2,
   LogOut,
@@ -334,6 +335,27 @@ export default function Agenda() {
         </nav>
 
         <div style={{ borderTop: '1px solid rgba(255,255,255,.08)', paddingTop: 16 }}>
+          <Link
+            to="/"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              width: '100%',
+              marginBottom: 8,
+              padding: '10px 14px',
+              borderRadius: 10,
+              border: '1px solid rgba(255,255,255,.08)',
+              background: 'rgba(255,255,255,.07)',
+              color: 'rgba(255,255,255,.78)',
+              fontSize: 13,
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            <Globe2 size={16} />
+            <span className="agenda-sidebar-label">Ver sitio web</span>
+          </Link>
           <button
             type="button"
             onClick={handleLogout}

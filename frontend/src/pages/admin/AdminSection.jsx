@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Clock,
   DollarSign,
+  Globe2,
   LayoutDashboard,
   Loader2,
   LogOut,
@@ -120,6 +121,10 @@ export function AdminMobileNav({ title, onLogout }) {
               );
             })}
           </div>
+          <Link to="/" onClick={() => setOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 9, minHeight: 46, marginTop: 18, padding: '10px 12px', borderRadius: 10, color: 'rgba(255,255,255,.82)', background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.1)', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>
+            <Globe2 size={16} />
+            Ver sitio web
+          </Link>
           <button type="button" onClick={logout} style={{ width: '100%', marginTop: 18, minHeight: 46, border: '1px solid rgba(255,255,255,.12)', borderRadius: 10, background: 'rgba(255,255,255,.06)', color: '#fff', fontSize: 13 }}>
             Cerrar sesión
           </button>
@@ -207,6 +212,10 @@ export function AdminLayout({ title, icon: Icon = LayoutDashboard, children }) {
           {NAV_REPORTES.map(({ to, label, icon }) => <SidebarLink key={to} to={to} label={label} icon={icon} pathname={pathname} />)}
         </nav>
 
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', marginBottom: 8, padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,.08)', background: 'rgba(255,255,255,.07)', color: 'rgba(255,255,255,.78)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
+          <Globe2 size={16} />
+          <span className="admin-sidebar-label">Ver sitio web</span>
+        </Link>
         <button type="button" onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 14px', borderRadius: 10, border: 'none', background: 'rgba(255,255,255,.05)', color: 'rgba(255,255,255,.6)', fontSize: 13, cursor: 'pointer' }}>
           <LogOut size={16} />
           <span className="admin-sidebar-label">Cerrar sesión</span>
