@@ -19,6 +19,8 @@ services:
         sync: false
       - key: GoogleAuth__AdminEmails__0
         value: leonardo.costas2001@gmail.com
+      - key: GoogleAuth__AdminEmails__1
+        value: camicabrera592@gmail.com
       - key: AllowedOrigins__0
         sync: false
       - key: Notifications__WhatsApp__Enabled
