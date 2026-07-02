@@ -3,9 +3,6 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Inicio from './pages/Inicio';
 import Login from './pages/Login';
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
 import Servicios from './pages/Servicios';
 import MisTurnos from './pages/client/MisTurnos';
@@ -21,9 +18,6 @@ function AppContent() {
     pathname.startsWith('/admin') ||
     pathname === '/' ||
     pathname === '/login' ||
-    pathname === '/register' ||
-    pathname === '/olvide-contrasena' ||
-    pathname === '/restablecer-contrasena' ||
     pathname === '/verificar-email';
 
   return (
@@ -32,9 +26,9 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Inicio />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/olvide-contrasena" element={<ForgotPassword />} />
-        <Route path="/restablecer-contrasena" element={<ResetPassword />} />
+        <Route path="/register" element={<Navigate to="/login" replace />} />
+        <Route path="/olvide-contrasena" element={<Navigate to="/login" replace />} />
+        <Route path="/restablecer-contrasena" element={<Navigate to="/login" replace />} />
         <Route path="/verificar-email" element={<VerifyEmail />} />
         <Route path="/servicios" element={<Servicios />} />
         <Route path="/turnos" element={<Navigate to="/reservar" replace />} />

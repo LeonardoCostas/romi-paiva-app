@@ -17,8 +17,8 @@ public sealed class AuthController : ControllerBase
         [FromBody] RegisterRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await authService.RegisterAsync(request, cancellationToken);
-        return ApiResponseFactory.FromResult(this, result);
+        await Task.CompletedTask;
+        return BadRequest(new ApiResponse<AuthMessageResponse>(false, null, "El registro con email y contrasena esta deshabilitado temporalmente. Usa Google para ingresar.", null));
     }
 
     [AllowAnonymous]
@@ -39,8 +39,8 @@ public sealed class AuthController : ControllerBase
         [FromBody] ForgotPasswordRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await authService.ForgotPasswordAsync(request, cancellationToken);
-        return ApiResponseFactory.FromResult(this, result);
+        await Task.CompletedTask;
+        return BadRequest(new ApiResponse<AuthMessageResponse>(false, null, "La recuperacion de contrasena esta deshabilitada temporalmente. Usa Google para ingresar.", null));
     }
 
     [AllowAnonymous]
@@ -50,8 +50,8 @@ public sealed class AuthController : ControllerBase
         [FromBody] ResetPasswordRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await authService.ResetPasswordAsync(request, cancellationToken);
-        return ApiResponseFactory.FromResult(this, result);
+        await Task.CompletedTask;
+        return BadRequest(new ApiResponse<AuthMessageResponse>(false, null, "La recuperacion de contrasena esta deshabilitada temporalmente. Usa Google para ingresar.", null));
     }
 
     [AllowAnonymous]
@@ -72,7 +72,7 @@ public sealed class AuthController : ControllerBase
         [FromBody] LoginRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await authService.LoginAsync(request, cancellationToken);
-        return ApiResponseFactory.FromResult(this, result);
+        await Task.CompletedTask;
+        return BadRequest(new ApiResponse<AuthResponse>(false, null, "El login con email y contrasena esta deshabilitado temporalmente. Usa Google para ingresar.", null));
     }
 }
