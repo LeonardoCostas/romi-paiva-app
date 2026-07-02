@@ -19,7 +19,9 @@ public static class DependencyInjection
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<GoogleAuthOptions>(configuration.GetSection(GoogleAuthOptions.SectionName));
         services.Configure<GoogleLoginOptions>(configuration.GetSection(GoogleLoginOptions.SectionName));
+        services.Configure<AuthLinkOptions>(configuration.GetSection(AuthLinkOptions.SectionName));
         services.Configure<WhatsAppOptions>(configuration.GetSection(WhatsAppOptions.SectionName));
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
         services.AddDbContext<AppDbContext>(options =>
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -49,6 +51,7 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IGoogleTokenValidator, GoogleTokenValidator>();
+        services.AddScoped<IEmailSender, SmtpEmailSender>();
         services.AddHttpClient<INotificationSender, WhatsAppNotificationSender>();
 
         services.AddScoped<AuthService>();

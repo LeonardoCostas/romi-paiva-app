@@ -20,6 +20,12 @@ public sealed class UserRepository : IUserRepository
     public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken) =>
         _dbContext.Users.FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
 
+    public Task<User?> GetByEmailVerificationTokenHashAsync(string tokenHash, CancellationToken cancellationToken) =>
+        _dbContext.Users.FirstOrDefaultAsync(x => x.EmailVerificationTokenHash == tokenHash, cancellationToken);
+
+    public Task<User?> GetByPasswordResetTokenHashAsync(string tokenHash, CancellationToken cancellationToken) =>
+        _dbContext.Users.FirstOrDefaultAsync(x => x.PasswordResetTokenHash == tokenHash, cancellationToken);
+
     public async Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken) =>
         await _dbContext.Users.OrderBy(x => x.FirstName).ThenBy(x => x.LastName).ToListAsync(cancellationToken);
 

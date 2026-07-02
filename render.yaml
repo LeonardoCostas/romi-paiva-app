@@ -35,6 +35,24 @@ services:
         value: turno_solicitado
       - key: Notifications__WhatsApp__LanguageCode
         value: es_AR
+      - key: Email__Enabled
+        sync: false
+      - key: Email__Host
+        sync: false
+      - key: Email__Port
+        value: "587"
+      - key: Email__UseSsl
+        value: "true"
+      - key: Email__Username
+        sync: false
+      - key: Email__Password
+        sync: false
+      - key: Email__FromEmail
+        sync: false
+      - key: Email__FromName
+        value: Romi Paiva
+      - key: Email__FrontendBaseUrl
+        value: https://romi-paiva-web.onrender.com
 
   - type: web
     name: romi-paiva-web

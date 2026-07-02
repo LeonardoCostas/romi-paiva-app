@@ -12,12 +12,45 @@ public sealed class AuthController : ControllerBase
 {
     [AllowAnonymous]
     [HttpPost("register")]
-    public async Task<ActionResult<ApiResponse<AuthResponse>>> Register(
+    public async Task<ActionResult<ApiResponse<AuthMessageResponse>>> Register(
         [FromServices] AuthService authService,
         [FromBody] RegisterRequest request,
         CancellationToken cancellationToken)
     {
         var result = await authService.RegisterAsync(request, cancellationToken);
+        return ApiResponseFactory.FromResult(this, result);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("verify-email")]
+    public async Task<ActionResult<ApiResponse<AuthMessageResponse>>> VerifyEmail(
+        [FromServices] AuthService authService,
+        [FromBody] VerifyEmailRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await authService.VerifyEmailAsync(request, cancellationToken);
+        return ApiResponseFactory.FromResult(this, result);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    public async Task<ActionResult<ApiResponse<AuthMessageResponse>>> ForgotPassword(
+        [FromServices] AuthService authService,
+        [FromBody] ForgotPasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await authService.ForgotPasswordAsync(request, cancellationToken);
+        return ApiResponseFactory.FromResult(this, result);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password")]
+    public async Task<ActionResult<ApiResponse<AuthMessageResponse>>> ResetPassword(
+        [FromServices] AuthService authService,
+        [FromBody] ResetPasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await authService.ResetPasswordAsync(request, cancellationToken);
         return ApiResponseFactory.FromResult(this, result);
     }
 

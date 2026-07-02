@@ -4,6 +4,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Inicio from './pages/Inicio';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
 import Servicios from './pages/Servicios';
 import MisTurnos from './pages/client/MisTurnos';
 import ReservarTurno from './pages/ReservarTurno';
@@ -18,7 +21,10 @@ function AppContent() {
     pathname.startsWith('/admin') ||
     pathname === '/' ||
     pathname === '/login' ||
-    pathname === '/register';
+    pathname === '/register' ||
+    pathname === '/olvide-contrasena' ||
+    pathname === '/restablecer-contrasena' ||
+    pathname === '/verificar-email';
 
   return (
     <div style={{ backgroundColor: pathname.startsWith('/admin') ? '#f4f2f5' : '#100608', minHeight: '100vh' }}>
@@ -27,6 +33,9 @@ function AppContent() {
         <Route path="/" element={<Inicio />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/olvide-contrasena" element={<ForgotPassword />} />
+        <Route path="/restablecer-contrasena" element={<ResetPassword />} />
+        <Route path="/verificar-email" element={<VerifyEmail />} />
         <Route path="/servicios" element={<Servicios />} />
         <Route path="/turnos" element={<Navigate to="/reservar" replace />} />
 

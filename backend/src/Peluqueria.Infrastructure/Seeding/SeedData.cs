@@ -50,6 +50,11 @@ public static class SeedData
             {
                 adminUser.SetStatus(true);
             }
+
+            if (!adminUser.EmailVerified)
+            {
+                adminUser.MarkEmailVerified();
+            }
         }
 
         if (!await dbContext.BusinessHours.AnyAsync())
